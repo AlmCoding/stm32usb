@@ -7,10 +7,16 @@
 
 #include "task/ctrl_task.hpp"
 
+#include "cmsis_os.h"
+
 namespace task {
 
 void ctrl_task(void *argument) {
-
+  /* Infinite loop */
+  for(;;)
+  {
+	osDelay(1);
+  }
 }
 
 } // namespace task

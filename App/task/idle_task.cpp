@@ -7,10 +7,16 @@
 
 #include "task/idle_task.hpp"
 
+#include "cmsis_os.h"
+
 namespace task {
 
 void idle_task(void *argument) {
-
+  /* Infinite loop */
+  for(;;)
+  {
+	osDelay(1);
+  }
 }
 
 } // namespace task
