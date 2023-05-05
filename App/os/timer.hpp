@@ -8,7 +8,6 @@
 #ifndef OS_TIMER_HPP_
 #define OS_TIMER_HPP_
 
-#include "FreeRTOS.h"
 #include "cmsis_os.h"
 
 namespace os {

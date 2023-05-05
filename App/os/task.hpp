@@ -8,7 +8,6 @@
 #ifndef OS_TASK_HPP_
 #define OS_TASK_HPP_
 
-#include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "task.h"
 
