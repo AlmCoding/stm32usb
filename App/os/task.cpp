@@ -9,6 +9,7 @@
 
 #include "task/ctrl_task.hpp"
 #include "task/idle_task.hpp"
+#include "task/uart_task.hpp"
 
 namespace os {
 
@@ -27,7 +28,7 @@ static const osThreadAttr_t idleTask_attributes = {
 
 /* Definitions for ctrlTask */
 static osThreadId_t ctrlTaskHandle;
-static uint32_t ctrlTaskBuffer[512];
+static uint32_t ctrlTaskBuffer[256];
 static osStaticThreadDef_t ctrlTaskControlBlock;
 static const osThreadAttr_t ctrlTask_attributes = {
   .name = "ctrlTask",
@@ -38,6 +39,19 @@ static const osThreadAttr_t ctrlTask_attributes = {
   .priority = (osPriority_t)osPriorityNormal,
 };
 
+/* Definitions for uartTask */
+static osThreadId_t uartTaskHandle;
+static uint32_t uartTaskBuffer[256];
+static osStaticThreadDef_t uartTaskControlBlock;
+static const osThreadAttr_t uartTask_attributes = {
+  .name = "uartTask",
+  .cb_mem = &uartTaskControlBlock,
+  .cb_size = sizeof(uartTaskControlBlock),
+  .stack_mem = &uartTaskBuffer[0],
+  .stack_size = sizeof(uartTaskBuffer),
+  .priority = (osPriority_t)osPriorityNormal,
+};
+
 void create_tasks() {
   /* Create the thread(s) */
   /* creation of idleTask */
@@ -45,6 +59,9 @@ void create_tasks() {
 
   /* creation of ctrlTask */
   ctrlTaskHandle = osThreadNew(task::ctrl_task, NULL, &ctrlTask_attributes);
+
+  /* creation of uartTask */
+  uartTaskHandle = osThreadNew(task::uart_task, NULL, &uartTask_attributes);
 }
 
 }  // namespace os
