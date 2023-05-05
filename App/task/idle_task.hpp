@@ -10,8 +10,8 @@
 
 namespace task {
 
-void idle_task(void *argument);
+void idle_task(void* argument);
 
-} // namespace task
+}  // namespace task
 
 #endif /* TASK_IDLE_TASK_HPP_ */

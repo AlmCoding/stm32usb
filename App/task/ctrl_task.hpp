@@ -10,8 +10,8 @@
 
 namespace task {
 
-void ctrl_task(void *argument);
+void ctrl_task(void* argument);
 
-} // namespace task
+}  // namespace task
 
 #endif /* TASK_CTRL_TASK_HPP_ */

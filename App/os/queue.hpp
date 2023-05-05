@@ -17,6 +17,6 @@ typedef StaticQueue_t osStaticMessageQDef_t;
 
 void create_queues();
 
-} // namespace os
+}  // namespace os
 
 #endif /* OS_QUEUE_HPP_ */

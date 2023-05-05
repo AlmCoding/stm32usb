@@ -10,11 +10,10 @@
 #include "usb_device.h"
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
-int main(void)
-{
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void) {
   // Init HW (CubeMX generated)
   init_peripherals();
 

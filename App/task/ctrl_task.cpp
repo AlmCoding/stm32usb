@@ -11,15 +11,11 @@
 
 namespace task {
 
-void ctrl_task(void *argument) {
+void ctrl_task(void* argument) {
   /* Infinite loop */
-  for(;;)
-  {
-	osDelay(1);
+  for (;;) {
+    osDelay(1);
   }
 }
 
-} // namespace task
-
-
-
+}  // namespace task

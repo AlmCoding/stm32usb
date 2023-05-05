@@ -9,8 +9,8 @@
 #define OS_TASK_HPP_
 
 #include "FreeRTOS.h"
-#include "task.h"
 #include "cmsis_os.h"
+#include "task.h"
 
 namespace os {
 
@@ -18,6 +18,6 @@ typedef StaticTask_t osStaticThreadDef_t;
 
 void create_tasks();
 
-} // namespace os
+}  // namespace os
 
 #endif /* OS_TASK_HPP_ */

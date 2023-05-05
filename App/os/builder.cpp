@@ -8,9 +8,9 @@
 #include "os/builder.hpp"
 
 #include "cmsis_os.h"
-#include "os/timer.hpp"
 #include "os/queue.hpp"
 #include "os/task.hpp"
+#include "os/timer.hpp"
 
 namespace os {
 
@@ -27,7 +27,8 @@ void build_os() {
 
   /* We never get here as control is taken by the scheduler */
   /* Infinite loop */
-  while(1);
+  while (1) {
+  }
 }
 
-} // namespace os
+}  // namespace os

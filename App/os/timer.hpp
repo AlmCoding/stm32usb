@@ -17,6 +17,6 @@ typedef StaticTimer_t osStaticTimerDef_t;
 
 void create_timers();
 
-} // namespace os
+}  // namespace os
 
 #endif /* OS_TIMER_HPP_ */
