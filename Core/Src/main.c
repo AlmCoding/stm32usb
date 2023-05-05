@@ -92,7 +92,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-
   /* USER CODE BEGIN 2 */
 #ifdef RENAME_CUBEMX_MAIN
   return;

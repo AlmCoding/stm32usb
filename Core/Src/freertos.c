@@ -25,12 +25,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#ifndef HIDE_CUBEMX_FREERTOS
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
 typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticTimer_t osStaticTimerDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -84,6 +85,22 @@ const osMessageQueueAttr_t ctrlTaskQueue_attributes = {
   .mq_mem = &ctrlTaskQueueBuffer,
   .mq_size = sizeof(ctrlTaskQueueBuffer)
 };
+/* Definitions for testTimer */
+osTimerId_t testTimerHandle;
+osStaticTimerDef_t testTimerControlBlock;
+const osTimerAttr_t testTimer_attributes = {
+  .name = "testTimer",
+  .cb_mem = &testTimerControlBlock,
+  .cb_size = sizeof(testTimerControlBlock),
+};
+/* Definitions for oneShotTimer */
+osTimerId_t oneShotTimerHandle;
+osStaticTimerDef_t oneShotTimerControlBlock;
+const osTimerAttr_t oneShotTimer_attributes = {
+  .name = "oneShotTimer",
+  .cb_mem = &oneShotTimerControlBlock,
+  .cb_size = sizeof(oneShotTimerControlBlock),
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -92,6 +109,8 @@ const osMessageQueueAttr_t ctrlTaskQueue_attributes = {
 
 void StartCtrlTask(void *argument);
 void StartIdleTask(void *argument);
+void testTimerCallback(void *argument);
+void oneShotTimerCallback(void *argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -140,6 +159,13 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
+
+  /* Create the timer(s) */
+  /* creation of testTimer */
+  testTimerHandle = osTimerNew(testTimerCallback, osTimerPeriodic, NULL, &testTimer_attributes);
+
+  /* creation of oneShotTimer */
+  oneShotTimerHandle = osTimerNew(oneShotTimerCallback, osTimerOnce, NULL, &oneShotTimer_attributes);
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -208,8 +234,24 @@ void StartIdleTask(void *argument)
   /* USER CODE END StartIdleTask */
 }
 
+/* testTimerCallback function */
+void testTimerCallback(void *argument)
+{
+  /* USER CODE BEGIN testTimerCallback */
+
+  /* USER CODE END testTimerCallback */
+}
+
+/* oneShotTimerCallback function */
+void oneShotTimerCallback(void *argument)
+{
+  /* USER CODE BEGIN oneShotTimerCallback */
+
+  /* USER CODE END oneShotTimerCallback */
+}
+
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-
+#endif
 /* USER CODE END Application */
 
