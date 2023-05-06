@@ -17,10 +17,9 @@ typedef StaticQueue_t osStaticMessageQDef_t;
 constexpr size_t CtrlTaskQueueSize = 8;
 constexpr size_t UartTaskQueueSize = 8;
 
-typedef int32_t CtrlTaskQueueItemType_t;
-typedef int32_t UartTaskQueueItemType_t;
-
 void createQueues();
+osMessageQueueId_t getUartTaskQueue();
+osMessageQueueId_t getCtrlTaskQueue();
 
 }  // namespace os
 

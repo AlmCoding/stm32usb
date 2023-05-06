@@ -7,6 +7,7 @@
 
 #include "hal/uart/Uart.hpp"
 #include <cstring>
+#include "os/msg/send_msg.hpp"
 
 namespace hal {
 namespace uart {
@@ -17,6 +18,35 @@ Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
 }
 
 Uart::~Uart() {}
+
+void Uart::reset() {
+  HAL_UART_Abort(uart_handle_);
+
+  pending_tx_start_ = tx_buffer_;
+  pending_tx_end_ = tx_buffer_;
+  new_tx_start_ = tx_buffer_;
+  new_tx_end_ = tx_buffer_;
+}
+
+int32_t Uart::scheduleTransmit(const uint8_t data[], size_t size) {
+  int32_t status;
+  size_t free_space = tx_buffer_ + TxBufferSize - new_tx_end_;
+
+  if (free_space >= size) {
+    std::memcpy(new_tx_end_, data, size);
+    new_tx_end_ += size;
+
+    os::msg::MsgType msg = { .id = os::msg::MsgId::ServiceTxUart1 };
+    os::msg::send_msg_isr(os::msg::MsgQueue::UartTaskQueue, msg);
+    status = 0;
+
+  } else {
+    // Not enough free space in buffer (drop entire frame)
+    status = -1;
+  }
+
+  return status;
+}
 
 int32_t Uart::transmit(const uint8_t data[], size_t size) {
   int32_t status = -1;
