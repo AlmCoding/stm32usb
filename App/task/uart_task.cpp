@@ -9,6 +9,7 @@
 
 #include "app/uart_srv/UartService.hpp"
 #include "cmsis_os.h"
+#include "lib/etl/vector.h"
 
 namespace task {
 

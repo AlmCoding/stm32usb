@@ -9,8 +9,9 @@
 #include "usart.h"
 
 namespace app {
-
 namespace uart_srv {
+
+
 
 UartService::UartService() : uart1{ &huart1 } {}
 

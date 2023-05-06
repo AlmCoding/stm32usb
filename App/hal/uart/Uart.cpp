@@ -18,7 +18,7 @@ Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
 
 Uart::~Uart() {}
 
-int32_t Uart::transmit(const uint8_t data[], const size_t size) {
+int32_t Uart::transmit(const uint8_t data[], size_t size) {
   int32_t status = -1;
 
   if (uart_handle_->gState == HAL_UART_STATE_ERROR) {
@@ -35,7 +35,7 @@ int32_t Uart::transmit(const uint8_t data[], const size_t size) {
   return status;
 }
 
-int32_t Uart::receive(uint8_t data[], const size_t max_size) {
+int32_t Uart::receive(uint8_t data[], size_t max_size) {
   int32_t rx_cnt = 0;
 
   if (uart_handle_->RxXferCount > 0) {
@@ -56,9 +56,13 @@ int32_t Uart::receive(uint8_t data[], const size_t max_size) {
   return rx_cnt;
 }
 
-int32_t Uart::startTx(const uint8_t data[], const size_t size) {
+int32_t Uart::startTx(const uint8_t data[], size_t size) {
   int32_t status = -1;
   HAL_StatusTypeDef hal_sts;
+
+  if (size > TxBufferSize) {
+    size = TxBufferSize;
+  }
 
   std::memcpy(tx_buffer_, data, size);
   hal_sts = HAL_UART_Transmit_IT(uart_handle_, tx_buffer_, size);
