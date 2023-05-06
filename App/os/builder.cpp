@@ -14,13 +14,13 @@
 
 namespace os {
 
-void build_os() {
+void buildOs() {
   /* Init scheduler */
   osKernelInitialize();
 
-  create_timers();
-  create_queues();
-  create_tasks();
+  createTimers();
+  createQueues();
+  createTasks();
 
   /* Start scheduler */
   osKernelStart();

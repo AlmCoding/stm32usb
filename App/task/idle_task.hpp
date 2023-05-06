@@ -10,7 +10,7 @@
 
 namespace task {
 
-void idle_task(void* argument);
+void idleTask(void* argument);
 
 }  // namespace task
 

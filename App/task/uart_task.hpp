@@ -10,7 +10,7 @@
 
 namespace task {
 
-void uart_task(void* argument);
+void uartTask(void* argument);
 
 }  // namespace task
 

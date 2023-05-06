@@ -11,7 +11,7 @@
 
 namespace task {
 
-void ctrl_task(void* argument) {
+void ctrlTask(void* argument) {
   /* Infinite loop */
   for (;;) {
     osDelay(1);

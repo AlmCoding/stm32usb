@@ -33,7 +33,7 @@ void testTimerCallback(void* argument) {}
 /* oneShotTimerCallback function */
 void oneShotTimerCallback(void* argument) {}
 
-void create_timers() {
+void createTimers() {
   /* Create the timer(s) */
   /* creation of testTimer */
   testTimerHandle = osTimerNew(testTimerCallback, osTimerPeriodic, NULL, &testTimer_attributes);

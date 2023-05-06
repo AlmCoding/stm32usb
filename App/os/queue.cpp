@@ -19,7 +19,7 @@ static const osMessageQueueAttr_t ctrlTaskQueue_attributes = { .name = "ctrlTask
                                                                .mq_mem = &ctrlTaskQueueBuffer,
                                                                .mq_size = sizeof(ctrlTaskQueueBuffer) };
 
-void create_queues() {
+void createQueues() {
   /* Create the queue(s) */
   /* creation of ctrlTaskQueue */
   ctrlTaskQueueHandle = osMessageQueueNew(16, sizeof(uint16_t), &ctrlTaskQueue_attributes);

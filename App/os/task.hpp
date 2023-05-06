@@ -15,7 +15,7 @@ namespace os {
 
 typedef StaticTask_t osStaticThreadDef_t;
 
-void create_tasks();
+void createTasks();
 
 }  // namespace os
 

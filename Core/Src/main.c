@@ -60,7 +60,7 @@ void MX_FREERTOS_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 #ifdef RENAME_CUBEMX_MAIN
-void init_peripherals() {
+void initPeripherals() {
 #else
 /* USER CODE END 0 */
 

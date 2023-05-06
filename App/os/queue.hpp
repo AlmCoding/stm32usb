@@ -14,7 +14,7 @@ namespace os {
 
 typedef StaticQueue_t osStaticMessageQDef_t;
 
-void create_queues();
+void createQueues();
 
 }  // namespace os
 

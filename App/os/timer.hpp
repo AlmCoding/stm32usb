@@ -14,7 +14,7 @@ namespace os {
 
 typedef StaticTimer_t osStaticTimerDef_t;
 
-void create_timers();
+void createTimers();
 
 }  // namespace os
 

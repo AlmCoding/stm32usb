@@ -11,7 +11,7 @@
 
 namespace task {
 
-void idle_task(void* argument) {
+void idleTask(void* argument) {
   /* Infinite loop */
   for (;;) {
     osDelay(1);

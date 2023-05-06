@@ -15,11 +15,11 @@
  */
 int main(void) {
   // Init HW (CubeMX generated)
-  init_peripherals();
+  initPeripherals();
 
   /* Init USB device */
   MX_USB_DEVICE_Init();
 
   // Build os
-  os::build_os();
+  os::buildOs();
 }

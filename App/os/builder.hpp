@@ -10,7 +10,7 @@
 
 namespace os {
 
-void build_os();
+void buildOs();
 
 } // namespace os
 

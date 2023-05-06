@@ -52,16 +52,16 @@ static const osThreadAttr_t uartTask_attributes = {
   .priority = (osPriority_t)osPriorityNormal,
 };
 
-void create_tasks() {
+void createTasks() {
   /* Create the thread(s) */
   /* creation of idleTask */
-  idleTaskHandle = osThreadNew(task::idle_task, NULL, &idleTask_attributes);
+  idleTaskHandle = osThreadNew(task::idleTask, NULL, &idleTask_attributes);
 
   /* creation of ctrlTask */
-  ctrlTaskHandle = osThreadNew(task::ctrl_task, NULL, &ctrlTask_attributes);
+  ctrlTaskHandle = osThreadNew(task::ctrlTask, NULL, &ctrlTask_attributes);
 
   /* creation of uartTask */
-  uartTaskHandle = osThreadNew(task::uart_task, NULL, &uartTask_attributes);
+  uartTaskHandle = osThreadNew(task::uartTask, NULL, &uartTask_attributes);
 }
 
 }  // namespace os

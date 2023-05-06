@@ -11,7 +11,7 @@
 
 namespace task {
 
-void uart_task(void* argument) {
+void uartTask(void* argument) {
   /* Infinite loop */
   for (;;) {
     osDelay(1);

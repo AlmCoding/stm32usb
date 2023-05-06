@@ -11,12 +11,11 @@ namespace hal {
 namespace uart {
 
 Uart::Uart() {
-  // TODO Auto-generated constructor stub
+  tx_buffer_.clear();
+  rx_buffer_.clear();
 }
 
-Uart::~Uart() {
-  // TODO Auto-generated destructor stub
-}
+Uart::~Uart() {}
 
 } /* namespace uart */
 } /* namespace hal */
