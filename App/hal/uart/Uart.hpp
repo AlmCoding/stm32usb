@@ -8,24 +8,30 @@
 #ifndef HAL_UART_UART_HPP_
 #define HAL_UART_UART_HPP_
 
-#include <stdint.h>
-#include "lib/etl/vector.h"
+#include <cstdint>
+#include "main.h"
 
 namespace hal {
 namespace uart {
 
+constexpr size_t RxBufferSize = 128;
+constexpr size_t TxBufferSize = 128;
+
 class Uart {
  public:
-  Uart();
-
-  int32_t transmit(const uint8_t data[], const uint16_t size);
-  int32_t receive(uint8_t data[], const uint16_t max_size);
-
+  Uart(UART_HandleTypeDef* uart_handle);
   virtual ~Uart();
 
+  int32_t transmit(const uint8_t data[], const size_t size);
+  int32_t receive(uint8_t data[], const size_t max_size);
+
  private:
-  etl::vector<uint8_t, 128> tx_buffer_;
-  etl::vector<uint8_t, 128> rx_buffer_;
+  int32_t startTx(const uint8_t data[], const size_t size);
+  int32_t startRx();
+
+  UART_HandleTypeDef* uart_handle_;
+  uint8_t rx_buffer_[RxBufferSize];
+  uint8_t tx_buffer_[TxBufferSize];
 };
 
 } /* namespace uart */
