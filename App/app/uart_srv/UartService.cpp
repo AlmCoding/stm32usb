@@ -11,13 +11,13 @@
 namespace app {
 namespace uart_srv {
 
-
-
 UartService::UartService() : uart1{ &huart1 } {}
 
 UartService::~UartService() {}
 
-void UartService::run() {}
+void UartService::run() {
+  uart1.transmit();
+}
 
 } /* namespace uart_srv */
 } /* namespace app */

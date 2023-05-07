@@ -13,8 +13,7 @@ namespace hal {
 namespace uart {
 
 Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
-  // Start recording incoming data
-  startRx();
+  reset();
 }
 
 Uart::~Uart() {}
@@ -22,44 +21,64 @@ Uart::~Uart() {}
 void Uart::reset() {
   HAL_UART_Abort(uart_handle_);
 
-  pending_tx_start_ = tx_buffer_;
-  pending_tx_end_ = tx_buffer_;
-  new_tx_start_ = tx_buffer_;
-  new_tx_end_ = tx_buffer_;
+  next_tx_start_ = tx_buffer_;
+  next_tx_end_ = tx_buffer_;
+
+  startRx();
 }
 
-int32_t Uart::scheduleTransmit(const uint8_t data[], size_t size) {
-  int32_t status;
-  size_t free_space = tx_buffer_ + TxBufferSize - new_tx_end_;
+StatusType Uart::scheduleTransmit(const uint8_t* data, size_t size) {
+  StatusType status;
+  size_t free_space = tx_buffer_ + TxBufferSize - next_tx_end_;
 
   if (free_space >= size) {
-    std::memcpy(new_tx_end_, data, size);
-    new_tx_end_ += size;
+    std::memcpy(next_tx_end_, data, size);
+    next_tx_end_ += size;
 
     os::msg::MsgType msg = { .id = os::msg::MsgId::ServiceTxUart1 };
     os::msg::send_msg_isr(os::msg::MsgQueue::UartTaskQueue, msg);
-    status = 0;
+    status = StatusType::Ok;
 
   } else {
     // Not enough free space in buffer (drop entire frame)
-    status = -1;
+    status = StatusType::Error;
   }
 
   return status;
 }
 
-int32_t Uart::transmit(const uint8_t data[], size_t size) {
-  int32_t status = -1;
+StatusType Uart::transmit() {
+  StatusType status;
+  HAL_StatusTypeDef hal_sts;
 
+  // Recover from error
   if (uart_handle_->gState == HAL_UART_STATE_ERROR) {
     HAL_UART_AbortTransmit(uart_handle_);
-    status = startTx(data, size);
+  }
 
-  } else if (uart_handle_->gState == HAL_UART_STATE_READY) {
-    status = startTx(data, size);
+  if (uart_handle_->gState == HAL_UART_STATE_READY) {
+    // Check for new data
+    if (next_tx_end_ != next_tx_start_) {
+      // Start transmit
+      hal_sts = HAL_UART_Transmit_IT(uart_handle_, next_tx_start_, (next_tx_end_ - next_tx_start_));
+
+      if (hal_sts == HAL_OK) {
+        next_tx_start_ = next_tx_end_;
+        status = StatusType::Ok;
+      } else {
+        status = StatusType::Error;
+      }
+
+    } else {
+      // No new data and uart ready
+      next_tx_start_ = tx_buffer_;
+      next_tx_end_ = tx_buffer_;
+      status = StatusType::Ok;
+    }
 
   } else {
-    status = 1;  // Busy
+    // Busy
+    status = StatusType::Busy;
   }
 
   return status;
@@ -78,7 +97,7 @@ int32_t Uart::receive(uint8_t data[], size_t max_size) {
 
     std::memcpy(data, rx_buffer_, rx_cnt);
 
-    if (startRx() == -1) {
+    if (startRx() == StatusType::Error) {
       rx_cnt = -1;  // Error
     }
   }
@@ -86,26 +105,8 @@ int32_t Uart::receive(uint8_t data[], size_t max_size) {
   return rx_cnt;
 }
 
-int32_t Uart::startTx(const uint8_t data[], size_t size) {
-  int32_t status = -1;
-  HAL_StatusTypeDef hal_sts;
-
-  if (size > TxBufferSize) {
-    size = TxBufferSize;
-  }
-
-  std::memcpy(tx_buffer_, data, size);
-  hal_sts = HAL_UART_Transmit_IT(uart_handle_, tx_buffer_, size);
-
-  if (hal_sts == HAL_OK) {
-    status = 0;
-  }
-
-  return status;
-}
-
-int32_t Uart::startRx() {
-  int32_t status = -1;
+StatusType Uart::startRx() {
+  StatusType status = StatusType::Error;
   HAL_StatusTypeDef hal_sts;
 
   if (uart_handle_->gState == HAL_UART_STATE_ERROR) {
@@ -115,7 +116,7 @@ int32_t Uart::startRx() {
   hal_sts = HAL_UART_Receive_IT(uart_handle_, rx_buffer_, RxBufferSize);
 
   if (hal_sts == HAL_OK) {
-    status = 0;
+    status = StatusType::Ok;
   }
 
   return status;

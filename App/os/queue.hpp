@@ -9,6 +9,7 @@
 #define OS_QUEUE_HPP_
 
 #include "cmsis_os.h"
+#include "os/msg/msg_def.hpp"
 
 namespace os {
 
@@ -18,8 +19,7 @@ constexpr size_t CtrlTaskQueueSize = 8;
 constexpr size_t UartTaskQueueSize = 8;
 
 void createQueues();
-osMessageQueueId_t getUartTaskQueue();
-osMessageQueueId_t getCtrlTaskQueue();
+osMessageQueueId_t getQueue(msg::MsgQueue queue);
 
 }  // namespace os
 

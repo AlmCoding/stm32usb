@@ -10,17 +10,24 @@
 #include "app/uart_srv/UartService.hpp"
 #include "cmsis_os.h"
 #include "lib/etl/vector.h"
+#include "os/msg/receive_msg.hpp"
 
 namespace task {
 
 void uartTask(void* argument) {
+  static os::msg::MsgType msg;
+  static bool msg_avail = false;
   static app::uart_srv::UartService uart_service{};
 
   /* Infinite loop */
   for (;;) {
-    uart_service.run();
+    msg_avail = os::msg::receive_msg(os::msg::MsgQueue::UartTaskQueue, &msg, Ticks1ms);
+    if (msg_avail == true) {
+      // process msg
+    }
 
-    osDelay(1);
+    uart_service.run();
+    // osDelay(1);
   }
 }
 

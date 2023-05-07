@@ -6,7 +6,7 @@
  */
 
 #include "os/queue.hpp"
-#include "os/msg/send_msg.hpp"
+#include "os/msg/msg_def.hpp"
 
 namespace os {
 
@@ -43,12 +43,24 @@ void createQueues() {
   uartTaskQueueHandle = osMessageQueueNew(UartTaskQueueSize, sizeof(msg::MsgType), &uartTaskQueue_attributes);
 }
 
-osMessageQueueId_t getCtrlTaskQueue() {
-  return uartTaskQueueHandle;
-}
+osMessageQueueId_t getQueue(msg::MsgQueue queue) {
+  osMessageQueueId_t qhdl = nullptr;
 
-osMessageQueueId_t getUartTaskQueue() {
-  return uartTaskQueueHandle;
+  switch (queue) {
+    case msg::MsgQueue::CtrlTaskQueue: {
+      qhdl = ctrlTaskQueueHandle;
+      break;
+    }
+    case msg::MsgQueue::UartTaskQueue: {
+      qhdl = uartTaskQueueHandle;
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  return qhdl;
 }
 
 }  // namespace os
