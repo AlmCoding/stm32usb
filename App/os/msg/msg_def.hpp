@@ -22,7 +22,7 @@ enum class MsgId {
 
 typedef struct {
   MsgId id;
-} MsgType;
+} BaseMsg;
 
 }  // namespace msg
 }  // namespace os

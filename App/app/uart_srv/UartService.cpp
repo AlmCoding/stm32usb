@@ -6,6 +6,7 @@
  */
 
 #include "app/uart_srv/UartService.hpp"
+#include "os/msg/msg_broker.hpp"
 #include "usart.h"
 
 namespace app {
@@ -20,6 +21,7 @@ void UartService::run() {
 
   if (uart1.receivedBytes() > 0) {
     // Inform USB_task to come and get the data
+    // os::msg::send_msg(queue, msg);
   }
 }
 

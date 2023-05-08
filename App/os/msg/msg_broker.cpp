@@ -12,7 +12,7 @@
 namespace os {
 namespace msg {
 
-bool send_msg(MsgQueue queue, MsgType* msg) {
+bool send_msg(MsgQueue queue, BaseMsg* msg) {
   bool success = false;
 
   osMessageQueueId_t qhdl = os::getQueue(queue);
@@ -23,7 +23,7 @@ bool send_msg(MsgQueue queue, MsgType* msg) {
   return success;
 }
 
-bool receive_msg(MsgQueue queue, MsgType* msg, TickNum timeout) {
+bool receive_msg(MsgQueue queue, BaseMsg* msg, TickNum timeout) {
   bool success = false;
 
   osMessageQueueId_t qhdl = os::getQueue(queue);

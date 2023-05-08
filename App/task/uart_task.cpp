@@ -15,14 +15,12 @@
 namespace task {
 
 void uartTask(void* /*argument*/) {
-  static os::msg::MsgType msg;
-  static bool msg_avail = false;
+  static os::msg::BaseMsg msg;
   static app::uart_srv::UartService uart_service{};
 
   /* Infinite loop */
   for (;;) {
-    msg_avail = os::msg::receive_msg(os::msg::MsgQueue::UartTaskQueue, &msg, Ticks1ms);
-    if (msg_avail == true) {
+    if (os::msg::receive_msg(os::msg::MsgQueue::UartTaskQueue, &msg, Ticks1ms) == true) {
       // process msg
     }
 
