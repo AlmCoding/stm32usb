@@ -12,7 +12,7 @@ namespace os {
 
 /* Definitions for ctrlTaskQueue */
 static osMessageQueueId_t ctrlTaskQueueHandle;
-static uint8_t ctrlTaskQueueBuffer[CtrlTaskQueueSize * sizeof(msg::BaseMsg)];
+static uint8_t ctrlTaskQueueBuffer[QueueSize_CtrlTask * sizeof(msg::BaseMsg)];
 static osStaticMessageQDef_t ctrlTaskQueueControlBlock;
 static const osMessageQueueAttr_t ctrlTaskQueue_attributes = {
   .name = "ctrlTaskQueue",
@@ -24,7 +24,7 @@ static const osMessageQueueAttr_t ctrlTaskQueue_attributes = {
 
 /* Definitions for uartTaskQueue */
 static osMessageQueueId_t uartTaskQueueHandle;
-static uint8_t uartTaskQueueBuffer[UartTaskQueueSize * sizeof(msg::BaseMsg)];
+static uint8_t uartTaskQueueBuffer[QueueSize_UartTask * sizeof(msg::BaseMsg)];
 static osStaticMessageQDef_t uartTaskQueueControlBlock;
 static const osMessageQueueAttr_t uartTaskQueue_attributes = {
   .name = "uartTaskQueue",
@@ -37,10 +37,10 @@ static const osMessageQueueAttr_t uartTaskQueue_attributes = {
 void createQueues() {
   /* Create the queue(s) */
   /* creation of ctrlTaskQueue */
-  ctrlTaskQueueHandle = osMessageQueueNew(CtrlTaskQueueSize, sizeof(msg::BaseMsg), &ctrlTaskQueue_attributes);
+  ctrlTaskQueueHandle = osMessageQueueNew(QueueSize_CtrlTask, sizeof(msg::BaseMsg), &ctrlTaskQueue_attributes);
 
   /* creation of uartTaskQueue */
-  uartTaskQueueHandle = osMessageQueueNew(UartTaskQueueSize, sizeof(msg::BaseMsg), &uartTaskQueue_attributes);
+  uartTaskQueueHandle = osMessageQueueNew(QueueSize_UartTask, sizeof(msg::BaseMsg), &uartTaskQueue_attributes);
 }
 
 osMessageQueueId_t getQueue(msg::MsgQueue queue) {

@@ -15,7 +15,7 @@ namespace os {
 
 /* Definitions for idleTask */
 static osThreadId_t idleTaskHandle;
-static uint32_t idleTaskBuffer[128];
+static uint8_t idleTaskBuffer[StackSize_IdleTask];
 static osStaticThreadDef_t idleTaskControlBlock;
 static const osThreadAttr_t idleTask_attributes = {
   .name = "idleTask",
@@ -23,12 +23,12 @@ static const osThreadAttr_t idleTask_attributes = {
   .cb_size = sizeof(idleTaskControlBlock),
   .stack_mem = &idleTaskBuffer[0],
   .stack_size = sizeof(idleTaskBuffer),
-  .priority = (osPriority_t)osPriorityLow,
+  .priority = Priority_IdleTask,
 };
 
 /* Definitions for ctrlTask */
 static osThreadId_t ctrlTaskHandle;
-static uint32_t ctrlTaskBuffer[256];
+static uint8_t ctrlTaskBuffer[StackSize_CtrlTask];
 static osStaticThreadDef_t ctrlTaskControlBlock;
 static const osThreadAttr_t ctrlTask_attributes = {
   .name = "ctrlTask",
@@ -36,12 +36,12 @@ static const osThreadAttr_t ctrlTask_attributes = {
   .cb_size = sizeof(ctrlTaskControlBlock),
   .stack_mem = &ctrlTaskBuffer[0],
   .stack_size = sizeof(ctrlTaskBuffer),
-  .priority = (osPriority_t)osPriorityNormal,
+  .priority = Priority_CtrlTask,
 };
 
 /* Definitions for uartTask */
 static osThreadId_t uartTaskHandle;
-static uint32_t uartTaskBuffer[256];
+static uint8_t uartTaskBuffer[StackSize_UartTask];
 static osStaticThreadDef_t uartTaskControlBlock;
 static const osThreadAttr_t uartTask_attributes = {
   .name = "uartTask",
@@ -49,7 +49,7 @@ static const osThreadAttr_t uartTask_attributes = {
   .cb_size = sizeof(uartTaskControlBlock),
   .stack_mem = &uartTaskBuffer[0],
   .stack_size = sizeof(uartTaskBuffer),
-  .priority = (osPriority_t)osPriorityNormal,
+  .priority = Priority_UartTask,
 };
 
 void createTasks() {
