@@ -10,11 +10,11 @@
 #include "app/uart_srv/UartService.hpp"
 #include "cmsis_os.h"
 #include "lib/etl/vector.h"
-#include "os/msg/receive_msg.hpp"
+#include "os/msg/msg_broker.hpp"
 
 namespace task {
 
-void uartTask(void* argument) {
+void uartTask(void* /*argument*/) {
   static os::msg::MsgType msg;
   static bool msg_avail = false;
   static app::uart_srv::UartService uart_service{};

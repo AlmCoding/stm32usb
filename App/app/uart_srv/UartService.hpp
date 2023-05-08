@@ -19,6 +19,7 @@ class UartService {
   virtual ~UartService();
 
   void run();
+  void forwardTxRequest(const uint8_t* data, size_t size);
 
  private:
   hal::uart::Uart uart1;

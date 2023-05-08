@@ -10,7 +10,7 @@
 
 namespace task {
 
-void ctrlTask(void* argument);
+void ctrlTask(void* /*argument*/);
 
 }  // namespace task
 

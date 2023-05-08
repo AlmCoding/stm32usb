@@ -28,10 +28,10 @@ static const osTimerAttr_t oneShotTimer_attributes = {
 };
 
 /* testTimerCallback function */
-void testTimerCallback(void* argument) {}
+void testTimerCallback(void* /*argument*/) {}
 
 /* oneShotTimerCallback function */
-void oneShotTimerCallback(void* argument) {}
+void oneShotTimerCallback(void* /*argument*/) {}
 
 void createTimers() {
   /* Create the timer(s) */

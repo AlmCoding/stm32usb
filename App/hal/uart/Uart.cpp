@@ -7,7 +7,7 @@
 
 #include "hal/uart/Uart.hpp"
 #include <cstring>
-#include "os/msg/send_msg.hpp"
+#include "os/msg/msg_broker.hpp"
 
 namespace hal {
 namespace uart {
@@ -36,7 +36,7 @@ StatusType Uart::scheduleTransmit(const uint8_t* data, size_t size) {
     next_tx_end_ += size;
 
     os::msg::MsgType msg = { .id = os::msg::MsgId::ServiceTxUart1 };
-    os::msg::send_msg_isr(os::msg::MsgQueue::UartTaskQueue, msg);
+    os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
     status = StatusType::Ok;
 
   } else {
@@ -60,7 +60,7 @@ StatusType Uart::transmit() {
     // Check for new data
     if (next_tx_end_ != next_tx_start_) {
       // Start transmit
-      hal_sts = HAL_UART_Transmit_IT(uart_handle_, next_tx_start_, (next_tx_end_ - next_tx_start_));
+      hal_sts = HAL_UART_Transmit_IT(uart_handle_, next_tx_start_, (uint16_t)(next_tx_end_ - next_tx_start_));
 
       if (hal_sts == HAL_OK) {
         next_tx_start_ = next_tx_end_;
@@ -82,6 +82,10 @@ StatusType Uart::transmit() {
   }
 
   return status;
+}
+
+uint32_t Uart::receivedBytes() {
+  return uart_handle_->RxXferCount;
 }
 
 int32_t Uart::receive(uint8_t data[], size_t max_size) {

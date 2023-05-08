@@ -32,7 +32,7 @@ void vApplicationIdleHook(void) {
   memory allocated by the kernel to any task that has since been deleted. */
 }
 
-void vApplicationStackOverflowHook(xTaskHandle xTask, signed char* pcTaskName) {
+void vApplicationStackOverflowHook(xTaskHandle /*xTask*/, signed char* /*pcTaskName*/) {
   /* Run time stack overflow checking is performed if
   configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
   called if a stack overflow is detected. */

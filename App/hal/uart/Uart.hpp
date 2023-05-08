@@ -14,8 +14,8 @@
 namespace hal {
 namespace uart {
 
-constexpr size_t RxBufferSize = 256;
-constexpr size_t TxBufferSize = 256;
+constexpr size_t RxBufferSize = 512;
+constexpr size_t TxBufferSize = 512;
 
 class Uart {
  public:
@@ -25,6 +25,8 @@ class Uart {
   void reset();
   StatusType scheduleTransmit(const uint8_t* data, size_t size);
   StatusType transmit();
+
+  uint32_t receivedBytes();
   int32_t receive(uint8_t data[], size_t max_size);
 
  private:
