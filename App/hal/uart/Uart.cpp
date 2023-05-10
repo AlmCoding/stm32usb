@@ -6,7 +6,6 @@
  */
 
 #include "hal/uart/Uart.hpp"
-#include <cstring>
 #include "os/msg/msg_broker.hpp"
 
 namespace hal {
@@ -19,7 +18,7 @@ Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
 Uart::~Uart() {}
 
 void Uart::reset() {
-  HAL_UART_Abort(uart_handle_);
+  // HAL_UART_Abort(uart_handle_);
 
   next_tx_start_ = tx_buffer_;
   next_tx_end_ = tx_buffer_;
@@ -31,7 +30,7 @@ StatusType Uart::scheduleTransmit(const uint8_t* data, size_t size) {
   StatusType status;
   size_t free_space = tx_buffer_ + TxBufferSize - next_tx_end_;
 
-  if (free_space >= size) {
+  if (free_space > size) {
     std::memcpy(next_tx_end_, data, size);
     next_tx_end_ += size;
 
@@ -49,6 +48,7 @@ StatusType Uart::scheduleTransmit(const uint8_t* data, size_t size) {
 
 StatusType Uart::transmit() {
   StatusType status;
+  uint16_t size;
   HAL_StatusTypeDef hal_sts;
 
   // Recover from error
@@ -59,8 +59,10 @@ StatusType Uart::transmit() {
   if (uart_handle_->gState == HAL_UART_STATE_READY) {
     // Check for new data
     if (next_tx_end_ != next_tx_start_) {
+      size = static_cast<uint16_t>(next_tx_end_ - next_tx_start_);
+
       // Start transmit
-      hal_sts = HAL_UART_Transmit_IT(uart_handle_, next_tx_start_, (uint16_t)(next_tx_end_ - next_tx_start_));
+      hal_sts = HAL_UART_Transmit_IT(uart_handle_, next_tx_start_, size);
 
       if (hal_sts == HAL_OK) {
         next_tx_start_ = next_tx_end_;
@@ -69,10 +71,14 @@ StatusType Uart::transmit() {
         status = StatusType::Error;
       }
 
-    } else {
+    } else if (next_tx_start_ != tx_buffer_) {
       // No new data and uart ready
       next_tx_start_ = tx_buffer_;
       next_tx_end_ = tx_buffer_;
+      status = StatusType::Ok;
+
+    } else {
+      // Nothing to be done
       status = StatusType::Ok;
     }
 

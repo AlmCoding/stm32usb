@@ -9,6 +9,7 @@
 #define COMMON_HPP_
 
 #include <cstdint>
+#include <cstring>
 
 typedef uint32_t TickNum;
 typedef int32_t MilliSeconds;

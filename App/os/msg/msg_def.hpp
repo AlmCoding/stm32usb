@@ -17,7 +17,8 @@ enum class MsgQueue {
 };
 
 enum class MsgId {
-  ServiceTxUart1 = 0,
+  ServiceTxUart1 = 0,   // From usb int to uart task
+  ServiceRxUart1,		// From uart task to usb task
 };
 
 typedef struct {

@@ -25,8 +25,14 @@ void UartService::run() {
   }
 }
 
-void UartService::forwardTxRequest(const uint8_t* data, size_t size) {
-  uart1.scheduleTransmit(data, size);
+int32_t UartService::forwardTxRequest(const uint8_t* data, size_t size) {
+  int32_t status = -1;
+
+  if (uart1.scheduleTransmit(data, size) == StatusType::Ok) {
+    status = 0;
+  }
+
+  return status;
 }
 
 } /* namespace uart_srv */

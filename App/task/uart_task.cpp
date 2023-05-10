@@ -11,22 +11,27 @@
 #include "cmsis_os.h"
 #include "lib/etl/vector.h"
 #include "os/msg/msg_broker.hpp"
+#include "os/task.hpp"
 
 namespace task {
 
+static app::uart_srv::UartService uart_service_{};
+
 void uartTask(void* /*argument*/) {
   static os::msg::BaseMsg msg;
-  static app::uart_srv::UartService uart_service{};
 
   /* Infinite loop */
   for (;;) {
-    if (os::msg::receive_msg(os::msg::MsgQueue::UartTaskQueue, &msg, Ticks1ms) == true) {
+    if (os::msg::receive_msg(os::msg::MsgQueue::UartTaskQueue, &msg, os::CycleTime_UartTask) == true) {
       // process msg
     }
 
-    uart_service.run();
-    // osDelay(1);
+    uart_service_.run();
   }
 }
 
 }  // namespace task
+
+int32_t handleRequest(const uint8_t* data, size_t size) {
+  return task::uart_service_.forwardTxRequest(data, size);
+}
