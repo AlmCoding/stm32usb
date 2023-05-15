@@ -12,23 +12,28 @@
 namespace app {
 namespace uart_srv {
 
-UartService::UartService() : uart1{ &huart1 } {}
+UartService::UartService() : uart1_{ &huart1 } {}
 
 UartService::~UartService() {}
 
 void UartService::run() {
-  uart1.transmit();
+  uart1_.transmit();
 
-  if (uart1.receivedBytes() > 0) {
-    // Inform USB_task to come and get the data
-    // os::msg::send_msg(queue, msg);
+  if (uart1_.receivedBytes() > 0) {
+    // Inform UsbTask to service received data
+    os::msg::BaseMsg msg = { .id = os::msg::MsgId::UartTask2UsbTask_ServiceRxUart1 };
+    os::msg::send_msg(os::msg::MsgQueue::UsbTaskQueue, &msg);
   }
 }
 
-int32_t UartService::forwardTxRequest(const uint8_t* data, size_t size) {
+int32_t UartService::getRxRequest(uint8_t* data, size_t max_size) {
+  return uart1_.serviceRx(data, max_size);
+}
+
+int32_t UartService::postTxRequest(const uint8_t* data, size_t size) {
   int32_t status = -1;
 
-  if (uart1.scheduleTransmit(data, size) == StatusType::Ok) {
+  if (uart1_.scheduleTx(data, size) == StatusType::Ok) {
     status = 0;
   }
 

@@ -5,7 +5,7 @@
  *      Author: Alexander L.
  */
 
-#include "task/ctrl_task.hpp"
+#include "task/ctrlTask.hpp"
 
 #include "cmsis_os.h"
 

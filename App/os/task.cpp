@@ -7,9 +7,10 @@
 
 #include "os/task.hpp"
 
-#include "task/ctrl_task.hpp"
-#include "task/idle_task.hpp"
-#include "task/uart_task.hpp"
+#include "task/ctrlTask.hpp"
+#include "task/idleTask.hpp"
+#include "task/uartTask.hpp"
+#include "task/usbTask.hpp"
 
 namespace os {
 
@@ -24,6 +25,19 @@ static const osThreadAttr_t idleTask_attributes = {
   .stack_mem = &idleTaskBuffer[0],
   .stack_size = sizeof(idleTaskBuffer),
   .priority = Priority_IdleTask,
+};
+
+/* Definitions for usbTask */
+static osThreadId_t usbTaskHandle;
+static uint8_t usbTaskBuffer[StackSize_UsbTask];
+static osStaticThreadDef_t usbTaskControlBlock;
+static const osThreadAttr_t usbTask_attributes = {
+  .name = "usbTask",
+  .cb_mem = &usbTaskControlBlock,
+  .cb_size = sizeof(usbTaskControlBlock),
+  .stack_mem = &usbTaskBuffer[0],
+  .stack_size = sizeof(usbTaskBuffer),
+  .priority = Priority_UsbTask,
 };
 
 /* Definitions for ctrlTask */
@@ -56,6 +70,9 @@ void createTasks() {
   /* Create the thread(s) */
   /* creation of idleTask */
   idleTaskHandle = osThreadNew(task::idleTask, NULL, &idleTask_attributes);
+
+  /* creation of usbTask */
+  usbTaskHandle = osThreadNew(task::usbTask, NULL, &usbTask_attributes);
 
   /* creation of ctrlTask */
   ctrlTaskHandle = osThreadNew(task::ctrlTask, NULL, &ctrlTask_attributes);

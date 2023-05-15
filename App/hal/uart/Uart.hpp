@@ -23,7 +23,8 @@ class Uart {
   virtual ~Uart();
 
   void reset();
-  StatusType scheduleTransmit(const uint8_t* data, size_t size);
+  int32_t serviceRx(uint8_t* data, size_t max_size);
+  StatusType scheduleTx(const uint8_t* data, size_t size);
   StatusType transmit();
 
   uint32_t receivedBytes();

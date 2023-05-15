@@ -5,7 +5,7 @@
  *      Author: Alexander L.
  */
 
-#include "task/idle_task.hpp"
+#include "task/idleTask.hpp"
 
 #include "cmsis_os.h"
 

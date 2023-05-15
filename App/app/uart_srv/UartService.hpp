@@ -19,10 +19,11 @@ class UartService {
   virtual ~UartService();
 
   void run();
-  int32_t forwardTxRequest(const uint8_t* data, size_t size);
+  int32_t getRxRequest(uint8_t* data, size_t max_size);
+  int32_t postTxRequest(const uint8_t* data, size_t size);
 
  private:
-  hal::uart::Uart uart1;
+  hal::uart::Uart uart1_;
 };
 
 } /* namespace uart_srv */

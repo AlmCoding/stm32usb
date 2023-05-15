@@ -26,7 +26,22 @@ void Uart::reset() {
   startRx();
 }
 
-StatusType Uart::scheduleTransmit(const uint8_t* data, size_t size) {
+int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
+  size_t size = receivedBytes();
+
+  if (size > max_size) {
+    size = max_size;
+  }
+
+  if (size > 0) {
+    std::memcpy(data, rx_buffer_, size);
+  } else {
+  }
+
+  return size;
+}
+
+StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
   StatusType status;
   size_t free_space = tx_buffer_ + TxBufferSize - next_tx_end_;
 
@@ -34,7 +49,7 @@ StatusType Uart::scheduleTransmit(const uint8_t* data, size_t size) {
     std::memcpy(next_tx_end_, data, size);
     next_tx_end_ += size;
 
-    os::msg::BaseMsg msg = { .id = os::msg::MsgId::ServiceTxUart1 };
+    os::msg::BaseMsg msg = { .id = os::msg::MsgId::Int2UartTask_ServiceTxUart1 };
     os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
     status = StatusType::Ok;
 

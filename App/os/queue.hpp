@@ -15,6 +15,7 @@ namespace os {
 
 typedef StaticQueue_t osStaticMessageQDef_t;
 
+constexpr size_t QueueSize_UsbTask = 16;
 constexpr size_t QueueSize_CtrlTask = 8;
 constexpr size_t QueueSize_UartTask = 8;
 

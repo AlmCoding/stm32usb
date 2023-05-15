@@ -12,13 +12,14 @@ namespace os {
 namespace msg {
 
 enum class MsgQueue {
-  CtrlTaskQueue = 0,
+  UsbTaskQueue = 0,
+  CtrlTaskQueue,
   UartTaskQueue,
 };
 
 enum class MsgId {
-  ServiceTxUart1 = 0,   // From usb int to uart task
-  ServiceRxUart1,		// From uart task to usb task
+  Int2UartTask_ServiceTxUart1 = 0,  // From usb int to uart task
+  UartTask2UsbTask_ServiceRxUart1,  // From uart task to usb task
 };
 
 typedef struct {

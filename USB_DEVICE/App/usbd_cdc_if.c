@@ -22,7 +22,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-#include "task/uart_task.hpp"
+#include "task/uartTask.hpp"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -252,7 +252,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t* Len) {
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
 
   // Echo received data
-  CDC_Transmit_FS(Buf, *Len);
+  // CDC_Transmit_FS(Buf, *Len);
 
   return (USBD_OK);
   /* USER CODE END 6 */
@@ -280,7 +280,7 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len) {
   // USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
   // result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
 
-  handleRequest(Buf, Len);
+  // uartTask_handleRequest(Buf, Len);
 
   /* USER CODE END 7 */
   return result;
