@@ -251,8 +251,8 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t* Len) {
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, Buf);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
 
-  // Echo received data
-  // CDC_Transmit_FS(Buf, *Len);
+  // Forward to uart task
+  uartTask_postRequest(Buf, *Len);
 
   return (USBD_OK);
   /* USER CODE END 6 */
@@ -277,10 +277,8 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len) {
     return USBD_BUSY;
   }
 
-  // USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
-  // result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
-
-  // uartTask_handleRequest(Buf, Len);
+  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
+  result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
 
   /* USER CODE END 7 */
   return result;

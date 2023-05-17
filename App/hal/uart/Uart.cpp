@@ -18,27 +18,10 @@ Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
 Uart::~Uart() {}
 
 void Uart::reset() {
-  // HAL_UART_Abort(uart_handle_);
-
   next_tx_start_ = tx_buffer_;
   next_tx_end_ = tx_buffer_;
 
   startRx();
-}
-
-int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
-  size_t size = receivedBytes();
-
-  if (size > max_size) {
-    size = max_size;
-  }
-
-  if (size > 0) {
-    std::memcpy(data, rx_buffer_, size);
-  } else {
-  }
-
-  return size;
 }
 
 StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
@@ -105,19 +88,16 @@ StatusType Uart::transmit() {
   return status;
 }
 
-uint32_t Uart::receivedBytes() {
+int32_t Uart::receivedBytes() {
   return uart_handle_->RxXferCount;
 }
 
-int32_t Uart::receive(uint8_t data[], size_t max_size) {
-  int32_t rx_cnt = 0;
+int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
+  int32_t rx_cnt = uart_handle_->RxXferCount;
 
-  if (uart_handle_->RxXferCount > 0) {
-    // Data available
-    if (uart_handle_->RxXferCount > max_size) {
+  if (rx_cnt > 0) {
+    if (rx_cnt > static_cast<int32_t>(max_size)) {
       rx_cnt = max_size;
-    } else {
-      rx_cnt = uart_handle_->RxXferCount;
     }
 
     std::memcpy(data, rx_buffer_, rx_cnt);
