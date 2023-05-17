@@ -20,6 +20,8 @@ static app::uart_srv::UartService uart_service_{};
 void uartTask(void* /*argument*/) {
   static os::msg::BaseMsg msg;
 
+  uart_service_.init();
+
   /* Infinite loop */
   for (;;) {
     if (os::msg::receive_msg(os::msg::MsgQueue::UartTaskQueue, &msg, os::CycleTime_UartTask) == true) {

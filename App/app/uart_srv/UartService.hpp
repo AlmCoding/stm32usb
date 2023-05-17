@@ -17,6 +17,7 @@ class UartService {
  public:
   UartService();
   virtual ~UartService();
+  void init();
 
   void run();
   int32_t getRxRequest(uint8_t* data, size_t max_size);

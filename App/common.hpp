@@ -11,6 +11,9 @@
 #include <cstdint>
 #include <cstring>
 
+#define BITS_SET(reg, bits) ((bool)((reg & bits) == bits))
+#define BITS_NOT_SET(reg, bits) (!BITS_SET(reg, bits))
+
 typedef uint32_t TickNum;
 typedef int32_t MilliSeconds;
 typedef int32_t MicroSeconds;

@@ -16,6 +16,10 @@ UartService::UartService() : uart1_{ &huart1 } {}
 
 UartService::~UartService() {}
 
+void UartService::init() {
+  uart1_.init();
+}
+
 void UartService::run() {
   uart1_.transmit();
 
