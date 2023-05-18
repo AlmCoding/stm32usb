@@ -7,6 +7,7 @@
 
 #include "main.h"
 #include "os/builder.hpp"
+#include "rtt/RTT/SEGGER_RTT.h"
 #include "usb_device.h"
 
 /**
@@ -14,6 +15,8 @@
  * @retval int
  */
 int main(void) {
+  SEGGER_RTT_Init();
+
   // Init HW (CubeMX generated)
   initPeripherals();
 

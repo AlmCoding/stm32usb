@@ -9,7 +9,6 @@
 
 #include "app/uart_srv/UartService.hpp"
 #include "cmsis_os.h"
-#include "lib/etl/vector.h"
 #include "os/msg/msg_broker.hpp"
 #include "os/task.hpp"
 
