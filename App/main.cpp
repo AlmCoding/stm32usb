@@ -7,15 +7,28 @@
 
 #include "main.h"
 #include "os/builder.hpp"
-#include "rtt/RTT/SEGGER_RTT.h"
+#include "srv/debug.hpp"
 #include "usb_device.h"
+
+#define DEBUG_ENABLE_MAIN
+#ifdef DEBUG_ENABLE_MAIN
+#define DEBUG_INFO(format, ...) srv::debug::print(srv::debug::TERM0, "[INF][main]: " format "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(format, ...) srv::debug::print(srv::debug::TERM0, "[WRN][main]: " format "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(format, ...) srv::debug::print(srv::debug::TERM0, "[ERR][main]: " format "\n", ##__VA_ARGS__);
+#else
+#define DEBUG_INFO(...)
+#define DEBUG_WARN(...)
+#define DEBUG_ERROR(...)
+#endif
 
 /**
  * @brief  The application entry point.
  * @retval int
  */
 int main(void) {
-  SEGGER_RTT_Init();
+  // Init debug output
+  srv::debug::initDebug();
+  DEBUG_INFO("Entry Point");
 
   // Init HW (CubeMX generated)
   initPeripherals();
