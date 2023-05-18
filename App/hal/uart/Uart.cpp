@@ -24,7 +24,7 @@ void Uart::init() {
 }
 
 StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
-  StatusType status;
+  StatusType status = StatusType::Error;
   size_t free_space = tx_buffer_ + TxBufferSize - next_tx_end_;
 
   if (free_space >= size) {
@@ -44,9 +44,9 @@ StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
 }
 
 StatusType Uart::transmit() {
-  StatusType status;
-  uint16_t size;
-  HAL_StatusTypeDef hal_sts;
+  StatusType status = StatusType::Error;
+  HAL_StatusTypeDef hal_sts = HAL_ERROR;
+  uint16_t size = 0;
 
   // Recover from error
   if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_ERROR) == true) {
@@ -88,7 +88,7 @@ StatusType Uart::transmit() {
 }
 
 int32_t Uart::receivedBytes() {
-  return (uart_handle_->RxXferCount - bytes_serviced_);
+  return (uart_handle_->RxXferSize - uart_handle_->RxXferCount - bytes_serviced_);
 }
 
 int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
@@ -100,12 +100,12 @@ int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
     }
 
     std::memcpy(data, (rx_buffer_ + bytes_serviced_), rx_cnt);
+    bytes_serviced_ += rx_cnt;
 
-    if (rx_cnt == receivedBytes()) {
-      // No bytes were received since beginning of this function
-
-      if (uart_handle_->RxXferCount > RxRestartThreshold) {
-        // Restart receiving data
+    if (uart_handle_->RxXferCount < RxRestartThreshold) {
+      // RX buffer filled over restart threshold
+      if (rx_cnt == receivedBytes()) {
+        // No bytes were received since beginning of this function
         if (startRx() == StatusType::Error) {
           rx_cnt = -1;  // Error
         }
@@ -118,11 +118,13 @@ int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
 
 StatusType Uart::startRx() {
   StatusType status = StatusType::Error;
+  HAL_StatusTypeDef hal_sts = HAL_ERROR;
 
   bytes_serviced_ = 0;
   HAL_UART_AbortReceive(uart_handle_);
 
-  if (HAL_UART_Receive_IT(uart_handle_, rx_buffer_, RxBufferSize) == HAL_OK) {
+  hal_sts = HAL_UART_Receive_IT(uart_handle_, rx_buffer_, RxBufferSize);
+  if (hal_sts == HAL_OK) {
     status = StatusType::Ok;
   }
 
