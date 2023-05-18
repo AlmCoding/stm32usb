@@ -1,0 +1,149 @@
+[33mcommit 71ab64e9e11d14007864971b18d3794d49f80735[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: noname <no@mail.com>
+Date:   Wed May 17 23:49:01 2023 +0200
+
+    Fix uart instantiation bug
+
+[33mcommit 219ef21269625e224b4a88074d1f7741c68cbd23[m
+Author: noname <no@mail.com>
+Date:   Wed May 17 22:07:09 2023 +0200
+
+    Refactor rx uart
+
+[33mcommit a6ee86faf45f669abb321c4ba0177e5bfc1f34df[m
+Author: noname <no@mail.com>
+Date:   Mon May 15 22:22:31 2023 +0200
+
+    Add usb task for upstreaming data to the pc
+
+[33mcommit 5b3569eac0de637f609c6d5963474913c35f234d[m
+Author: noname <no@mail.com>
+Date:   Wed May 10 21:08:21 2023 +0200
+
+    Add tx forwarding
+
+[33mcommit 149d04bbc6d4bd98f40431196f6b22d0c0b4afd5[m
+Author: noname <no@mail.com>
+Date:   Tue May 9 00:01:23 2023 +0200
+
+    Refactoring
+
+[33mcommit 95ad165d71435c3ae44459482ff4402abfafdcf4[m[33m ([m[1;32mrefactor_uart_Concept[m[33m)[m
+Author: noname <no@mail.com>
+Date:   Mon May 8 23:49:58 2023 +0200
+
+    Refactor name
+
+[33mcommit 7e9c934b3319e35cadbbd2dfc2fbd9bfb5817834[m
+Author: noname <no@mail.com>
+Date:   Mon May 8 23:44:57 2023 +0200
+
+    Add -Wno-missing-field-initializers compiler flag
+
+[33mcommit 4b112c46f8cf31d69b2f14e944ef1bace7346c00[m
+Author: noname <no@mail.com>
+Date:   Mon May 8 23:37:04 2023 +0200
+
+    Refactor msg queue handling
+
+[33mcommit d63331232e8278a8c1a291e4ff76cb273766a11b[m
+Author: noname <no@mail.com>
+Date:   Sun May 7 22:20:38 2023 +0200
+
+    Refactor uart
+
+[33mcommit 248b313ccb2ddc7c30779b56df2993cdea3c0459[m
+Author: noname <no@mail.com>
+Date:   Sat May 6 23:27:32 2023 +0200
+
+    Add send message abstraction
+
+[33mcommit 329a66c803a3010f434834d109b7110f8c1d18be[m
+Author: noname <no@mail.com>
+Date:   Sat May 6 22:18:14 2023 +0200
+
+    Refactor
+
+[33mcommit 0ae1d09a70097465f0175df3c959027e2ead2b9c[m[33m ([m[1;32madd_etl_lib[m[33m)[m
+Author: noname <no@mail.com>
+Date:   Sat May 6 18:47:20 2023 +0200
+
+    Add uart service
+
+[33mcommit f85ae45e82ceca9696ba0cee069cf4281c222470[m
+Author: noname <no@mail.com>
+Date:   Sat May 6 16:27:24 2023 +0200
+
+    Refactoring
+
+[33mcommit 359cd14e059a00288d402bfb79f80991a438ed8e[m
+Author: noname <no@mail.com>
+Date:   Sat May 6 14:19:44 2023 +0200
+
+    Add I2C
+
+[33mcommit 33f319928eabca13d9297021241e9975d79c3c2e[m
+Author: noname <no@mail.com>
+Date:   Sat May 6 12:45:44 2023 +0200
+
+    Add etl lib v20.35.14
+
+[33mcommit 544a504a0a2e9b4dbd13499cae29bfdbc6b5f382[m
+Author: noname <no@mail.com>
+Date:   Fri May 5 22:57:16 2023 +0200
+
+    Cleanup headers
+
+[33mcommit a4f117655ab8a05f9f0d5d212ae896665676d7a4[m[33m ([m[1;32mcreate_uart_task[m[33m)[m
+Author: noname <no@mail.com>
+Date:   Fri May 5 22:40:36 2023 +0200
+
+    Add uart task
+
+[33mcommit d75054a3aef97c46c8a87095a1f38ec22c824519[m
+Author: noname <no@mail.com>
+Date:   Fri May 5 22:15:20 2023 +0200
+
+    Run clang-format
+
+[33mcommit 4bb05236dca38e531e9978e66345c6da9c1c7669[m
+Author: noname <no@mail.com>
+Date:   Fri May 5 17:52:54 2023 +0200
+
+    Migrate to 1.12.1 stm32cubeIde
+
+[33mcommit 6030ca3d0be2575caa7e146de6b9e297e6ce3b6c[m[33m ([m[1;31morigin/convert_to_cpp_project[m[33m, [m[1;32mconvert_to_cpp_project[m[33m)[m
+Author: noname <no@mail.com>
+Date:   Fri May 5 17:29:58 2023 +0200
+
+    Add idle hook
+
+[33mcommit 634dc9a5784bf77bbfb727b80f3093cc081275ce[m
+Author: noname <no@mail.com>
+Date:   Fri May 5 17:25:44 2023 +0200
+
+    Fix tasks
+
+[33mcommit f969b0fee3c94faea1eecfdc43d49a8d8ee53fc8[m
+Author: noname <no@mail.com>
+Date:   Fri May 5 17:12:08 2023 +0200
+
+    Migrate freertos to cpp project structure
+
+[33mcommit 0ff81c431b45dd9341fd76d92d11299e9b85df9d[m
+Author: noname <no@mail.com>
+Date:   Wed May 3 21:58:40 2023 +0200
+
+    Add cpp main
+
+[33mcommit a5a2e28aba1d4dbd5d58b4f06dee5b1a55e1d35a[m[33m ([m[1;31morigin/add_freertos[m[33m, [m[1;32madd_freertos[m[33m)[m
+Author: noname <no@mail.com>
+Date:   Wed May 3 21:29:41 2023 +0200
+
+    Add freeRTOS
+
+[33mcommit c1eadac77116628e2552e164acd93e7e8c2d4ece[m
+Author: noname <no@mail.com>
+Date:   Wed May 3 20:25:24 2023 +0200
+
+    Init project
