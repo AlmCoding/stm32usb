@@ -7,6 +7,7 @@
 
 #include "cmsis_os.h"
 #include "task.h"
+#include "tim.h"
 
 /* Hook prototypes */
 void configureTimerForRunTimeStats(void);
@@ -14,10 +15,12 @@ unsigned long getRunTimeCounterValue(void);
 void vApplicationIdleHook(void);
 void vApplicationStackOverflowHook(xTaskHandle xTask, signed char* pcTaskName);
 
-void configureTimerForRunTimeStats(void) {}
+void configureTimerForRunTimeStats(void) {
+  HAL_TIM_Base_Start(&htim2);
+}
 
 unsigned long getRunTimeCounterValue(void) {
-  return 0;
+  return htim2.Instance->CNT;
 }
 
 void vApplicationIdleHook(void) {
