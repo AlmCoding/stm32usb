@@ -67,7 +67,6 @@
 									<listOptionValue builtIn="false" value="../Libraries/rtt/Config"/>
 									<listOptionValue builtIn="false" value="../Libraries/rtt/RTT"/>
 									<listOptionValue builtIn="false" value="../Libraries/tf"/>
-									<listOptionValue builtIn="false" value="../App/driver/tf"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1119757732" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>

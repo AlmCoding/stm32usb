@@ -24,6 +24,7 @@ enum class MsgId {
 
 typedef struct {
   MsgId id;
+  // ServiceFunc srv_func;
 } BaseMsg;
 
 }  // namespace msg

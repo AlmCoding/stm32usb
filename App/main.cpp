@@ -28,7 +28,7 @@
 int main(void) {
   // Init debug output
   srv::debug::initDebug();
-  DEBUG_INFO("Entry Point");
+  DEBUG_INFO("Startup System");
 
   // Init HW (CubeMX generated)
   initPeripherals();

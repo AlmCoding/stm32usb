@@ -1,4 +1,7 @@
+extern "C" {
+
 #include "tf/TinyFrame.h"
+#include "usbd_cdc_if.h"
 
 /**
  * This is an example of integrating TinyFrame into the application.
@@ -10,8 +13,8 @@
  * listener timeout feature.
  */
 
-void TF_WriteImpl(TinyFrame* tf, const uint8_t* buff, uint32_t len) {
-  // send to UART
+void TF_WriteImpl(TinyFrame* /*tf*/, const uint8_t* buff, uint32_t len) {
+  CDC_Transmit_FS(const_cast<uint8_t*>(buff), static_cast<uint16_t>(len));
 }
 
 // --------- Mutex callbacks ----------
@@ -19,13 +22,13 @@ void TF_WriteImpl(TinyFrame* tf, const uint8_t* buff, uint32_t len) {
 // DELETE if mutex is not used
 
 /** Claim the TX interface before composing and sending a frame */
-bool TF_ClaimTx(TinyFrame* tf) {
+bool TF_ClaimTx(TinyFrame* /*tf*/) {
   // take mutex
   return true;  // we succeeded
 }
 
 /** Free the TX interface after composing and sending a frame */
-void TF_ReleaseTx(TinyFrame* tf) {
+void TF_ReleaseTx(TinyFrame* /*tf*/) {
   // release mutex
 }
 
@@ -47,3 +50,4 @@ TF_CKSUM TF_CksumAdd(TF_CKSUM cksum, uint8_t byte) {
 TF_CKSUM TF_CksumEnd(TF_CKSUM cksum) {
   return cksum;
 }
+}  // extern "C"
