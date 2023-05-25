@@ -22,7 +22,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-#include "ctrl/tf/FrameController.hpp"
+#include "driver/tf/FrameDriver.hpp"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -253,7 +253,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t* Len) {
 
   // Forward to router in usb task
   // usbTask_receiveData(Buf, *Len);
-  FrameController_receiveData(Buf, *Len);
+  FrameDriver_receiveData(Buf, *Len);
 
   return (USBD_OK);
   /* USER CODE END 6 */

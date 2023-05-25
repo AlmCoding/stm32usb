@@ -50,4 +50,5 @@ TF_CKSUM TF_CksumAdd(TF_CKSUM cksum, uint8_t byte) {
 TF_CKSUM TF_CksumEnd(TF_CKSUM cksum) {
   return cksum;
 }
+
 }  // extern "C"
