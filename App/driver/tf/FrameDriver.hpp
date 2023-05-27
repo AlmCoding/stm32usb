@@ -10,12 +10,14 @@
 
 #ifdef __cplusplus
 
+#include "app/usb/usbComTypes.hpp"
+#include "common.hpp"
+
 extern "C" {
 #include "tf/TinyFrame.h"
 }
 
-namespace driver {
-namespace tf {
+namespace driver::tf {
 
 class FrameDriver {
  public:
@@ -28,15 +30,22 @@ class FrameDriver {
     return instance;
   }
 
-  void sendFrame();
+  StatusType registerTxCallback(app::usb::UsbMsgType type, app::usb::TxCallback callback);
+  void callTxCallback(app::usb::UsbMsgType type);
 
-  // Forward received data to tiny frame
+  StatusType registerRxCallback(app::usb::UsbMsgType type, app::usb::RxCallback callback);
+  void callRxCallback(app::usb::UsbMsgType type, const uint8_t* data, size_t size);
+
+  // Forward data to tiny frame (downstream)
   void receiveData(const uint8_t* data, size_t size);
 
  private:
   FrameDriver();
 
   TinyFrame tf_;
+  app::usb::TxCallback tx_callbacks_[static_cast<uint8_t>(app::usb::UsbMsgType::NumValues)] = { nullptr };
+  app::usb::RxCallback rx_callbacks_[static_cast<uint8_t>(app::usb::UsbMsgType::NumValues)] = { nullptr };
+  uint8_t tx_buffer_[TF_MAX_PAYLOAD_RX];
 };
 
 extern "C" {
@@ -46,8 +55,7 @@ void FrameDriver_receiveData(const uint8_t* data, size_t size);
 
 #ifdef __cplusplus
 }  // extern "C"
-}  // namespace tf
-}  // namespace driver
+}  // namespace driver::tf
 #endif
 
 #endif /* DRIVER_TF_FRAMEDRIVER_HPP_ */

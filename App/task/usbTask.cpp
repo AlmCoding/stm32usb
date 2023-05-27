@@ -8,6 +8,7 @@
 #include "task/usbTask.hpp"
 
 #include "cmsis_os.h"
+#include "driver/tf/FrameDriver.hpp"
 #include "os/msg/msg_broker.hpp"
 #include "os/task.hpp"
 #include "srv/debug.hpp"
@@ -27,9 +28,6 @@
 
 namespace task {
 
-constexpr size_t UsbTxBufferSize = 1024;
-uint8_t usb_task_tx_buffer_[UsbTxBufferSize];
-
 void processMsg(os::msg::BaseMsg* msg);
 
 void usbTask(void* /*argument*/) {
@@ -44,30 +42,22 @@ void usbTask(void* /*argument*/) {
 }
 
 void processMsg(os::msg::BaseMsg* msg) {
-  size_t size = 0;
-
   switch (msg->id) {
-    case os::msg::MsgId::UartTask2UsbTask_ServiceRxUart1: {
-      size = task::uartTask_getRequest(usb_task_tx_buffer_, UsbTxBufferSize);
+    case os::msg::MsgId::ServiceTxRequest: {
+      driver::tf::FrameDriver::getInstance().callTxCallback(msg->type);
       break;
     }
     default: {
       break;
     }
   }
-
-  if (size > 0) {
-    // CDC_Transmit_FS(usb_task_tx_buffer_, static_cast<uint16_t>(size));
-  }
 }
 
 int32_t usbTask_transmitData(const uint8_t* /*data*/, size_t /*size*/) {
-  // CDC_Transmit_FS(data, static_cast<uint16_t>(size));
   return 0;
 }
 
-int32_t usbTask_receiveData(const uint8_t* /*data*/, size_t size) {
-  DEBUG_INFO("Rx %d bytes.", size);
+int32_t usbTask_receiveData(const uint8_t* /*data*/, size_t /*size*/) {
   return 0;
 }
 

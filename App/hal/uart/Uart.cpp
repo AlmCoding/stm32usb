@@ -31,7 +31,7 @@ StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
     std::memcpy(next_tx_end_, data, size);
     next_tx_end_ += size;
 
-    os::msg::BaseMsg msg = { .id = os::msg::MsgId::Int2UartTask_ServiceTxUart1 };
+    os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
     os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
     status = StatusType::Ok;
 

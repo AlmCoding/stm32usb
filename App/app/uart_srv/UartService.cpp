@@ -25,7 +25,7 @@ void UartService::run() {
 
   if (uart1_.receivedBytes() > 0) {
     // Inform UsbTask to service received data
-    os::msg::BaseMsg msg = { .id = os::msg::MsgId::UartTask2UsbTask_ServiceRxUart1 };
+    os::msg::BaseMsg msg = { .id = os::msg::MsgId::ServiceTxRequest };
     os::msg::send_msg(os::msg::MsgQueue::UsbTaskQueue, &msg);
   }
 }

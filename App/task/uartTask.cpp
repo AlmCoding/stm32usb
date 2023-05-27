@@ -9,6 +9,7 @@
 
 #include "app/uart_srv/UartService.hpp"
 #include "cmsis_os.h"
+#include "driver/tf/FrameDriver.hpp"
 #include "os/msg/msg_broker.hpp"
 #include "os/task.hpp"
 
@@ -20,6 +21,12 @@ void uartTask(void* /*argument*/) {
   static os::msg::BaseMsg msg;
 
   uart_service_.init();
+
+  // Register callback for incoming msg
+  driver::tf::FrameDriver::getInstance().registerRxCallback(app::usb::UsbMsgType::UartMsg, uartTask_postRequest);
+
+  // Register callback for outgoing msg
+  driver::tf::FrameDriver::getInstance().registerTxCallback(app::usb::UsbMsgType::UartMsg, uartTask_getRequest);
 
   /* Infinite loop */
   for (;;) {
