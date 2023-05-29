@@ -6,6 +6,18 @@
  */
 
 #include "driver/tf/FrameDriver.hpp"
+#include "srv/debug.hpp"
+
+#define DEBUG_ENABLE_FRAME_DRIVER
+#ifdef DEBUG_ENABLE_FRAME_DRIVER
+#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][FrameDriver]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][FrameDriver]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][FrameDriver]: " f "\n", ##__VA_ARGS__);
+#else
+#define DEBUG_INFO(...)
+#define DEBUG_WARN(...)
+#define DEBUG_ERROR(...)
+#endif
 
 namespace driver::tf {
 
@@ -25,6 +37,7 @@ StatusType FrameDriver::registerTxCallback(app::usb::UsbMsgType type, app::usb::
 void FrameDriver::callTxCallback(app::usb::UsbMsgType type) {
   TF_Msg msg = { 0 };
 
+  msg.type = static_cast<TF_TYPE>(type);
   msg.len = static_cast<TF_LEN>(tx_callbacks_[static_cast<uint8_t>(type)](tx_buffer_, sizeof(tx_buffer_)));
   msg.data = tx_buffer_;
 
@@ -63,7 +76,8 @@ TF_Result typeCallback(TinyFrame* /*tf*/, TF_Msg* msg) {
   return TF_STAY;
 }
 
-TF_Result genericCallback(TinyFrame* /*tf*/, TF_Msg* /*msg*/) {
+TF_Result genericCallback(TinyFrame* /*tf*/, TF_Msg* msg) {
+  DEBUG_WARN("Unknown msg type: %d", msg->type);
   return TF_STAY;
 }
 

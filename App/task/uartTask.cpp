@@ -18,15 +18,16 @@ namespace task {
 static app::uart_srv::UartService uart_service_{};
 
 void uartTask(void* /*argument*/) {
+  constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::UartMsg;
   static os::msg::BaseMsg msg;
 
   uart_service_.init();
 
   // Register callback for incoming msg
-  driver::tf::FrameDriver::getInstance().registerRxCallback(app::usb::UsbMsgType::UartMsg, uartTask_postRequest);
+  driver::tf::FrameDriver::getInstance().registerRxCallback(TaskUsbMsgType, uartTask_postRequest);
 
   // Register callback for outgoing msg
-  driver::tf::FrameDriver::getInstance().registerTxCallback(app::usb::UsbMsgType::UartMsg, uartTask_getRequest);
+  driver::tf::FrameDriver::getInstance().registerTxCallback(TaskUsbMsgType, uartTask_getRequest);
 
   /* Infinite loop */
   for (;;) {
@@ -34,7 +35,14 @@ void uartTask(void* /*argument*/) {
       // process msg
     }
 
-    uart_service_.run();
+    if (uart_service_.run() == true) {
+      // Inform UsbTask to service received data
+      os::msg::BaseMsg msg = {
+        .id = os::msg::MsgId::ServiceTxRequest,
+        .type = TaskUsbMsgType,
+      };
+      os::msg::send_msg(os::msg::MsgQueue::UsbTaskQueue, &msg);
+    }
   }
 }
 

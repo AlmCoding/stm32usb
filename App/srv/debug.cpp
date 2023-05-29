@@ -9,8 +9,7 @@
 #include <cstdarg>
 #include "rtt/RTT/SEGGER_RTT.h"
 
-namespace srv {
-namespace debug {
+namespace srv::debug {
 
 void initDebug() {
   SEGGER_RTT_Init();
@@ -23,5 +22,4 @@ void print(uint8_t term, const char* format, ...) {
   va_end(args);
 }
 
-}  // namespace debug
-}  // namespace srv
+}  // namespace srv::debug

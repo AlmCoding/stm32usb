@@ -8,7 +8,7 @@
 #define TF_CONFIG_H
 
 #include <stdint.h>
-// #include <stdio.h>  // used by the TF_Error() macro defined below
+#include "../app/srv/debug.hpp"
 
 //----------------------------- FRAME FORMAT ---------------------------------
 // The format can be adjusted to fit your particular application needs
@@ -25,7 +25,7 @@
 
 // Adjust sizes as desired (1,2,4)
 #define TF_ID_BYTES 1
-#define TF_LEN_BYTES 2
+#define TF_LEN_BYTES 1
 #define TF_TYPE_BYTES 1
 
 // Checksum type. Options:
@@ -51,10 +51,10 @@ typedef uint8_t TF_COUNT;
 
 // Maximum received payload size (static buffer)
 // Larger payloads will be rejected.
-#define TF_MAX_PAYLOAD_RX 1024
+#define TF_MAX_PAYLOAD_RX 512
 // Size of the sending buffer. Larger payloads will be split to pieces and sent
 // in multiple calls to the write function. This can be lowered to reduce RAM usage.
-#define TF_SENDBUF_LEN 64
+#define TF_SENDBUF_LEN 512
 
 // --- Listener counts - determine sizes of the static slot tables ---
 
@@ -70,11 +70,10 @@ typedef uint8_t TF_COUNT;
 #define TF_PARSER_TIMEOUT_TICKS 10
 
 // Whether to use mutex - requires you to implement TF_ClaimTx() and TF_ReleaseTx()
-#define TF_USE_MUTEX 1
+#define TF_USE_MUTEX 0
 
 // Error reporting function. To disable debug, change to empty define
-// #define TF_Error(format, ...) printf("[TF] " format "\n", ##__VA_ARGS__)
-#define TF_Error(format, ...)
+#define TF_Error(f, ...) print(TERM0, "[ERR][TF] " f "\n", ##__VA_ARGS__)
 
 //------------------------- End of user config ------------------------------
 

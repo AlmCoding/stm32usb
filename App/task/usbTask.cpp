@@ -17,9 +17,9 @@
 
 #define DEBUG_ENABLE_USB_TASK
 #ifdef DEBUG_ENABLE_USB_TASK
-#define DEBUG_INFO(format, ...) srv::debug::print(srv::debug::TERM0, "[INF][usbTask]: " format "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(format, ...) srv::debug::print(srv::debug::TERM0, "[WRN][usbTask]: " format "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(format, ...) srv::debug::print(srv::debug::TERM0, "[ERR][usbTask]: " format "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][usbTask]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][usbTask]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][usbTask]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)

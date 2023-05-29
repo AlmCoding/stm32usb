@@ -19,7 +19,7 @@ class UartService {
   virtual ~UartService();
   void init();
 
-  void run();
+  bool run();
   int32_t getRxRequest(uint8_t* data, size_t max_size);
   int32_t postTxRequest(const uint8_t* data, size_t size);
 
