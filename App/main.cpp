@@ -28,13 +28,14 @@
 int main(void) {
   // Init debug output
   srv::debug::initDebug();
-  DEBUG_INFO("Startup System");
 
   // Init HW (CubeMX generated)
   initPeripherals();
+  DEBUG_INFO("Init Peripherals [OK]");
 
   /* Init USB device */
   MX_USB_DEVICE_Init();
+  DEBUG_INFO("Init USB [OK]");
 
   // Build os
   os::buildOs();

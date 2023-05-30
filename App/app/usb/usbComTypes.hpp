@@ -20,7 +20,12 @@ enum class UsbMsgType : uint8_t {
   CtrlMsg = 0,
   UartMsg,
   I2cMsg,
-  // Keep this at end
+  SpiMsg,
+  CanMsg,
+  PwmMsg,
+  GpioMsg,
+  AdcMsg,
+  // Keep this at the end
   NumValues,
 };
 
