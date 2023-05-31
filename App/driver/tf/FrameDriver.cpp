@@ -6,6 +6,7 @@
  */
 
 #include "driver/tf/FrameDriver.hpp"
+#include "srv/Stopwatch.hpp"
 #include "srv/debug.hpp"
 
 #define DEBUG_ENABLE_FRAME_DRIVER
@@ -66,8 +67,14 @@ void FrameDriver::receiveData(const uint8_t* data, size_t size) {
 }
 
 void FrameDriver_receiveData(const uint8_t* data, size_t size) {
+  srv::Stopwatch stopwatch{};
+  stopwatch.start();
+
   driver::tf::FrameDriver& frameDriver = driver::tf::FrameDriver::getInstance();
   frameDriver.receiveData(data, size);
+
+  stopwatch.stop();
+  DEBUG_INFO("USB RX-INT time: %d us", stopwatch.time());
 }
 
 TF_Result typeCallback(TinyFrame* /*tf*/, TF_Msg* msg) {
