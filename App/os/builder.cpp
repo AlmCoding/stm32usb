@@ -12,17 +12,30 @@
 #include "os/task.hpp"
 #include "os/timer.hpp"
 
+#define DEBUG_ENABLE_BUILDER
+#ifdef DEBUG_ENABLE_BUILDER
+#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][builder]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][builder]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][builder]: " f "\n", ##__VA_ARGS__);
+#else
+#define DEBUG_INFO(...)
+#define DEBUG_WARN(...)
+#define DEBUG_ERROR(...)
+#endif
+
 namespace os {
 
 void buildOs() {
   /* Init scheduler */
   osKernelInitialize();
+  DEBUG_INFO("Init Kernel [OK]");
 
   createTimers();
   createQueues();
   createTasks();
 
   /* Start scheduler */
+  DEBUG_INFO("Start Kernel ...");
   osKernelStart();
 
   /* We never get here as control is taken by the scheduler */

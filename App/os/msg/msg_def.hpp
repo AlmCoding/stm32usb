@@ -8,6 +8,8 @@
 #ifndef OS_MSG_MSG_DEF_HPP_
 #define OS_MSG_MSG_DEF_HPP_
 
+#include "app/usb/usbComTypes.hpp"
+
 namespace os {
 namespace msg {
 
@@ -18,12 +20,13 @@ enum class MsgQueue {
 };
 
 enum class MsgId {
-  Int2UartTask_ServiceTxUart1 = 0,  // From usb int to uart task
-  UartTask2UsbTask_ServiceRxUart1,  // From uart task to usb task
+  TriggerTask = 0,
+  ServiceTxRequest,
 };
 
 typedef struct {
   MsgId id;
+  app::usb::UsbMsgType type;
 } BaseMsg;
 
 }  // namespace msg

@@ -20,14 +20,16 @@ void UartService::init() {
   uart1_.init();
 }
 
-void UartService::run() {
+bool UartService::run() {
+  bool pending_rx_request = false;
+
   uart1_.transmit();
 
   if (uart1_.receivedBytes() > 0) {
-    // Inform UsbTask to service received data
-    os::msg::BaseMsg msg = { .id = os::msg::MsgId::UartTask2UsbTask_ServiceRxUart1 };
-    os::msg::send_msg(os::msg::MsgQueue::UsbTaskQueue, &msg);
+    pending_rx_request = true;
   }
+
+  return pending_rx_request;
 }
 
 int32_t UartService::getRxRequest(uint8_t* data, size_t max_size) {

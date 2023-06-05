@@ -91,8 +91,9 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
     __HAL_RCC_USB_CLK_ENABLE();
 
     /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(USB_LP_CAN_RX0_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(USB_LP_CAN_RX0_IRQn);
+    __HAL_REMAPINTERRUPT_USB_ENABLE();
+    HAL_NVIC_SetPriority(USB_LP_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(USB_LP_IRQn);
   /* USER CODE BEGIN USB_MspInit 1 */
 
   /* USER CODE END USB_MspInit 1 */
@@ -116,7 +117,7 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
     HAL_GPIO_DeInit(GPIOA, DM_Pin|DP_Pin);
 
     /* Peripheral interrupt Deinit*/
-    HAL_NVIC_DisableIRQ(USB_LP_CAN_RX0_IRQn);
+    HAL_NVIC_DisableIRQ(USB_LP_IRQn);
 
   /* USER CODE BEGIN USB_MspDeInit 1 */
 
