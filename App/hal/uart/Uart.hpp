@@ -14,8 +14,8 @@
 namespace hal {
 namespace uart {
 
-constexpr size_t RxBufferSize = 512;
-constexpr size_t TxBufferSize = 512;
+constexpr size_t RxBufferSize = 256;
+constexpr size_t TxBufferSize = 256;
 constexpr size_t RxRestartThreshold = RxBufferSize / 2;
 
 class Uart {

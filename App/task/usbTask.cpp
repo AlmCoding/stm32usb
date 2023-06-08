@@ -44,6 +44,8 @@ void usbTask(void* /*argument*/) {
 void processMsg(os::msg::BaseMsg* msg) {
   switch (msg->id) {
     case os::msg::MsgId::ServiceTxRequest: {
+      while (CDC_IsTransmit_Busy() == 1) {
+      }
       driver::tf::FrameDriver::getInstance().callTxCallback(msg->type);
       break;
     }
@@ -51,14 +53,6 @@ void processMsg(os::msg::BaseMsg* msg) {
       break;
     }
   }
-}
-
-int32_t usbTask_transmitData(const uint8_t* /*data*/, size_t /*size*/) {
-  return 0;
-}
-
-int32_t usbTask_receiveData(const uint8_t* /*data*/, size_t /*size*/) {
-  return 0;
 }
 
 }  // namespace task

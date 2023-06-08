@@ -13,8 +13,6 @@
 namespace task {
 
 void usbTask(void* argument);
-int32_t usbTask_transmitData(uint8_t* data, size_t max_size);
-int32_t usbTask_receiveData(const uint8_t* data, size_t size);
 
 }  // namespace task
 

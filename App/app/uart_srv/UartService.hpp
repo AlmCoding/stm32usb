@@ -20,8 +20,8 @@ class UartService {
   void init();
 
   bool run();
-  int32_t getRxRequest(uint8_t* data, size_t max_size);
-  int32_t postTxRequest(const uint8_t* data, size_t size);
+  int32_t postRequest(const uint8_t* data, size_t size);
+  int32_t serviceRequest(uint8_t* data, size_t max_size);
 
  private:
   hal::uart::Uart uart1_;

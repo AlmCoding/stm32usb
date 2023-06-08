@@ -261,8 +261,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, Buf);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
 
-  // Forward to router in usb task
-  // usbTask_receiveData(Buf, *Len);
+  // Forward to frame driver
   FrameDriver_receiveData(Buf, *Len);
 
   return (USBD_OK);
@@ -297,7 +296,14 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
-
+uint8_t CDC_IsTransmit_Busy() {
+  USBD_CDC_HandleTypeDef* hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+  if (hcdc->TxState != 0) {
+    return 1;  // true
+  } else {
+    return 0;  // false
+  }
+}
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
 /**

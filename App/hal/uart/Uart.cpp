@@ -7,9 +7,20 @@
 
 #include "hal/uart/Uart.hpp"
 #include "os/msg/msg_broker.hpp"
+#include "srv/debug.hpp"
 
-namespace hal {
-namespace uart {
+#define DEBUG_ENABLE_UART
+#ifdef DEBUG_ENABLE_UART
+#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][Uart]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][Uart]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][Uart]: " f "\n", ##__VA_ARGS__);
+#else
+#define DEBUG_INFO(...)
+#define DEBUG_WARN(...)
+#define DEBUG_ERROR(...)
+#endif
+
+namespace hal::uart {
 
 Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {}
 
@@ -36,7 +47,7 @@ StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
     status = StatusType::Ok;
 
   } else {
-    // Not enough free space in buffer (drop entire frame)
+    DEBUG_ERROR("Not enough free space in buffer");
     status = StatusType::Error;
   }
 
@@ -107,6 +118,7 @@ int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
       if (rx_cnt == receivedBytes()) {
         // No bytes were received since beginning of this function
         if (startRx() == StatusType::Error) {
+          DEBUG_ERROR("Restart RX failed!");
           rx_cnt = -1;  // Error
         }
       }
@@ -131,5 +143,4 @@ StatusType Uart::startRx() {
   return status;
 }
 
-} /* namespace uart */
-} /* namespace hal */
+} /* namespace hal::uart */

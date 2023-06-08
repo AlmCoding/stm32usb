@@ -11,9 +11,9 @@
 
 #define DEBUG_ENABLE_FRAME_DRIVER
 #ifdef DEBUG_ENABLE_FRAME_DRIVER
-#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][FrameDriver]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][FrameDriver]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][FrameDriver]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][FrmDrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][FrmDrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][FrmDrv]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)
@@ -43,6 +43,7 @@ void FrameDriver::callTxCallback(app::usb::UsbMsgType type) {
   msg.data = tx_buffer_;
 
   if (msg.len > 0) {
+    DEBUG_INFO("O=> msg: type: %d, len: %d", msg.type, msg.len);
     TF_Send(&tf_, &msg);
   }
 }
@@ -74,12 +75,15 @@ void FrameDriver_receiveData(const uint8_t* data, size_t size) {
   frameDriver.receiveData(data, size);
 
   stopwatch.stop();
-  DEBUG_INFO("USB RX-INT time: %d us", stopwatch.time());
+  DEBUG_INFO("USB rx: %d us", stopwatch.time());
 }
 
 TF_Result typeCallback(TinyFrame* /*tf*/, TF_Msg* msg) {
+  DEBUG_INFO("=>O msg: type: %d, len: %d", msg->type, msg->len);
+
   driver::tf::FrameDriver& frameDriver = driver::tf::FrameDriver::getInstance();
   frameDriver.callRxCallback(static_cast<app::usb::UsbMsgType>(msg->type), msg->data, msg->len);
+
   return TF_STAY;
 }
 

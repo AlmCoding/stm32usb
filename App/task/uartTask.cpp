@@ -15,6 +15,9 @@
 
 namespace task {
 
+int32_t uartTask_postRequest(const uint8_t* data, size_t size);
+int32_t uartTask_getRequest(uint8_t* data, size_t max_size);
+
 static app::uart_srv::UartService uart_service_{};
 
 void uartTask(void* /*argument*/) {
@@ -47,11 +50,11 @@ void uartTask(void* /*argument*/) {
 }
 
 int32_t uartTask_postRequest(const uint8_t* data, size_t size) {
-  return task::uart_service_.postTxRequest(data, size);
+  return task::uart_service_.postRequest(data, size);
 }
 
 int32_t uartTask_getRequest(uint8_t* data, size_t max_size) {
-  return task::uart_service_.getRxRequest(data, max_size);
+  return task::uart_service_.serviceRequest(data, max_size);
 }
 
 }  // namespace task

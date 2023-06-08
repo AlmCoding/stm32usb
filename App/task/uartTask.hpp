@@ -13,8 +13,6 @@
 namespace task {
 
 void uartTask(void* argument);
-int32_t uartTask_postRequest(const uint8_t* data, size_t size);
-int32_t uartTask_getRequest(uint8_t* data, size_t max_size);
 
 }  // namespace task
 
