@@ -48,7 +48,7 @@ StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
     status = StatusType::Ok;
 
   } else {
-    DEBUG_ERROR("Not enough free space in buffer");
+    DEBUG_ERROR("Tx buffer overflow");
     status = StatusType::Error;
   }
 
@@ -83,6 +83,7 @@ StatusType Uart::transmit() {
       }
 
     } else if (next_tx_start_ != tx_buffer_) {
+      DEBUG_INFO("Reset tx buffer")
       // No new data and uart ready
       next_tx_start_ = tx_buffer_;
       next_tx_end_ = tx_buffer_;
