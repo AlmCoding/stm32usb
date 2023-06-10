@@ -35,7 +35,7 @@ void Uart::init() {
 }
 
 StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
-  StatusType status = StatusType::Error;
+  StatusType status;
   size_t free_space = tx_buffer_ + TxBufferSize - next_tx_end_;
 
   if (free_space >= size) {
@@ -56,9 +56,8 @@ StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
 }
 
 StatusType Uart::transmit() {
-  StatusType status = StatusType::Error;
+  StatusType status;
   HAL_StatusTypeDef hal_sts = HAL_ERROR;
-  uint16_t size = 0;
 
   // Recover from error
   if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_ERROR) == true) {
@@ -69,7 +68,7 @@ StatusType Uart::transmit() {
   if (BITS_NOT_SET(uart_handle_->gState, HAL_UART_STATE_BUSY_TX) == true) {
     // Check for new data
     if (next_tx_end_ != next_tx_start_) {
-      size = static_cast<uint16_t>(next_tx_end_ - next_tx_start_);
+      uint16_t size = static_cast<uint16_t>(next_tx_end_ - next_tx_start_);
 
       // Start transmit
       DEBUG_INFO("Transmit %d bytes", size)

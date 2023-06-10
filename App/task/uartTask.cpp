@@ -36,7 +36,6 @@ static bool pending_request_ = false;
 void uartTask(void* /*argument*/) {
   constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::UartMsg;
   static os::msg::BaseMsg msg;
-  int32_t rx_buffer_level;
 
   uart_service_.init();
 
@@ -52,12 +51,12 @@ void uartTask(void* /*argument*/) {
       // process msg
     }
 
-    rx_buffer_level = uart_service_.run();
+    int32_t rx_buffer_level = uart_service_.run();
     if ((rx_buffer_level > 0) && (pending_request_ == false)) {
       DEBUG_INFO("Request service (%d bytes)", rx_buffer_level)
       // Inform UsbTask to service received data
-      os::msg::BaseMsg msg = { .id = os::msg::MsgId::ServiceTxRequest, .type = TaskUsbMsgType };
-      os::msg::send_msg(os::msg::MsgQueue::UsbTaskQueue, &msg);
+      os::msg::BaseMsg req_msg = { .id = os::msg::MsgId::ServiceTxRequest, .type = TaskUsbMsgType };
+      os::msg::send_msg(os::msg::MsgQueue::UsbTaskQueue, &req_msg);
       pending_request_ = true;
     }
   }
