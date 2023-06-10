@@ -12,7 +12,7 @@
 
 #include "common.hpp"
 
-namespace srv::debug {
+namespace srv::dbg {
 
 constexpr uint8_t TERM0 = 0;
 

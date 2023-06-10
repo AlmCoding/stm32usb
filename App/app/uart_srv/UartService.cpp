@@ -17,9 +17,9 @@
 
 #define DEBUG_ENABLE_UART_SERVICE
 #ifdef DEBUG_ENABLE_UART_SERVICE
-#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][uartSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][uartSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][uartSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][uartSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][uartSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][uartSrv]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)

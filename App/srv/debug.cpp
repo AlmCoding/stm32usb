@@ -9,7 +9,7 @@
 #include <cstdarg>
 #include "rtt/RTT/SEGGER_RTT.h"
 
-namespace srv::debug {
+namespace srv::dbg {
 
 void initDebug() {
   SEGGER_RTT_Init();
