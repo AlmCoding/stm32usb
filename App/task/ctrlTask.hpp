@@ -8,10 +8,10 @@
 #ifndef TASK_CTRL_TASK_HPP_
 #define TASK_CTRL_TASK_HPP_
 
-namespace task {
+namespace task::ctrl {
 
 void ctrlTask(void* /*argument*/);
 
-}  // namespace task
+}  // namespace task::ctrl
 
 #endif /* TASK_CTRL_TASK_HPP_ */

@@ -9,22 +9,8 @@
 
 #include "task/ctrlTask.hpp"
 #include "task/uartTask.hpp"
-#include "task/usbTask.hpp"
 
 namespace os {
-
-/* Definitions for usbTask */
-static osThreadId_t usbTaskHandle;
-static uint8_t usbTaskBuffer[StackSize_UsbTask];
-static osStaticThreadDef_t usbTaskControlBlock;
-static const osThreadAttr_t usbTask_attributes = {
-  .name = "usbTask",
-  .cb_mem = &usbTaskControlBlock,
-  .cb_size = sizeof(usbTaskControlBlock),
-  .stack_mem = &usbTaskBuffer[0],
-  .stack_size = sizeof(usbTaskBuffer),
-  .priority = Priority_UsbTask,
-};
 
 /* Definitions for ctrlTask */
 static osThreadId_t ctrlTaskHandle;
@@ -54,14 +40,12 @@ static const osThreadAttr_t uartTask_attributes = {
 
 void createTasks() {
   /* Create the thread(s) */
-  /* creation of usbTask */
-  usbTaskHandle = osThreadNew(task::usbTask, NULL, &usbTask_attributes);
 
   /* creation of ctrlTask */
-  ctrlTaskHandle = osThreadNew(task::ctrlTask, NULL, &ctrlTask_attributes);
+  ctrlTaskHandle = osThreadNew(task::ctrl::ctrlTask, NULL, &ctrlTask_attributes);
 
   /* creation of uartTask */
-  uartTaskHandle = osThreadNew(task::uartTask, NULL, &uartTask_attributes);
+  uartTaskHandle = osThreadNew(task::uart::uartTask, NULL, &uartTask_attributes);
 }
 
 }  // namespace os

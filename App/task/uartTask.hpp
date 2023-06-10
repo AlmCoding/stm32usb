@@ -10,10 +10,10 @@
 
 #include "common.hpp"
 
-namespace task {
+namespace task::uart {
 
 void uartTask(void* argument);
 
-}  // namespace task
+}  // namespace task::uart
 
 #endif /* TASK_UART_TASK_HPP_ */

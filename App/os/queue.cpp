@@ -10,18 +10,6 @@
 
 namespace os {
 
-/* Definitions for usbTaskQueue */
-static osMessageQueueId_t usbTaskQueueHandle;
-static uint8_t usbTaskQueueBuffer[QueueSize_UsbTask * sizeof(msg::BaseMsg)];
-static osStaticMessageQDef_t usbTaskQueueControlBlock;
-static const osMessageQueueAttr_t usbTaskQueue_attributes = {
-  .name = "usbTaskQueue",
-  .cb_mem = &usbTaskQueueControlBlock,
-  .cb_size = sizeof(usbTaskQueueControlBlock),
-  .mq_mem = &usbTaskQueueBuffer,
-  .mq_size = sizeof(usbTaskQueueBuffer),
-};
-
 /* Definitions for ctrlTaskQueue */
 static osMessageQueueId_t ctrlTaskQueueHandle;
 static uint8_t ctrlTaskQueueBuffer[QueueSize_CtrlTask * sizeof(msg::BaseMsg)];
@@ -48,8 +36,6 @@ static const osMessageQueueAttr_t uartTaskQueue_attributes = {
 
 void createQueues() {
   /* Create the queue(s) */
-  /* creation of usbTaskQueue */
-  usbTaskQueueHandle = osMessageQueueNew(QueueSize_UsbTask, sizeof(msg::BaseMsg), &usbTaskQueue_attributes);
 
   /* creation of ctrlTaskQueue */
   ctrlTaskQueueHandle = osMessageQueueNew(QueueSize_CtrlTask, sizeof(msg::BaseMsg), &ctrlTaskQueue_attributes);
@@ -62,10 +48,6 @@ osMessageQueueId_t getQueue(msg::MsgQueue queue) {
   osMessageQueueId_t qhdl = nullptr;
 
   switch (queue) {
-    case msg::MsgQueue::UsbTaskQueue: {
-      qhdl = usbTaskQueueHandle;
-      break;
-    }
     case msg::MsgQueue::CtrlTaskQueue: {
       qhdl = ctrlTaskQueueHandle;
       break;

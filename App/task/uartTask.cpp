@@ -25,7 +25,7 @@
 #define DEBUG_ERROR(...)
 #endif
 
-namespace task {
+namespace task::uart {
 
 int32_t uartTask_postRequest(const uint8_t* data, size_t size);
 int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size);
@@ -56,20 +56,20 @@ void uartTask(void* /*argument*/) {
       DEBUG_INFO("Request service (%d bytes)", rx_buffer_level)
       // Inform UsbTask to service received data
       os::msg::BaseMsg req_msg = { .id = os::msg::MsgId::ServiceTxRequest, .type = TaskUsbMsgType };
-      os::msg::send_msg(os::msg::MsgQueue::UsbTaskQueue, &req_msg);
+      os::msg::send_msg(os::msg::MsgQueue::CtrlTaskQueue, &req_msg);
       pending_request_ = true;
     }
   }
 }
 
 int32_t uartTask_postRequest(const uint8_t* data, size_t size) {
-  return task::uart_service_.postRequest(data, size);
+  return uart_service_.postRequest(data, size);
 }
 
 int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size) {
-  int32_t size = task::uart_service_.serviceRequest(data, max_size);
+  int32_t size = uart_service_.serviceRequest(data, max_size);
   pending_request_ = false;
   return size;
 }
 
-}  // namespace task
+}  // namespace task::uart
