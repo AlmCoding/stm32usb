@@ -25,16 +25,9 @@ void UartService::init() {
   uart1_.init();
 }
 
-bool UartService::run() {
-  bool pending_rx_request = false;
-
+int32_t UartService::run() {
   uart1_.transmit();
-
-  if (uart1_.receivedBytes() > 0) {
-    pending_rx_request = true;
-  }
-
-  return pending_rx_request;
+  return uart1_.receive();
 }
 
 int32_t UartService::postRequest(const uint8_t* data, size_t size) {

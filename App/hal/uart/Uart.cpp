@@ -39,6 +39,7 @@ StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
   size_t free_space = tx_buffer_ + TxBufferSize - next_tx_end_;
 
   if (free_space >= size) {
+    DEBUG_INFO("Schedule %d bytes for transmit", size)
     std::memcpy(next_tx_end_, data, size);
     next_tx_end_ += size;
 
@@ -61,6 +62,7 @@ StatusType Uart::transmit() {
 
   // Recover from error
   if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_ERROR) == true) {
+    DEBUG_ERROR("TX error state")
     HAL_UART_AbortTransmit(uart_handle_);
   }
 
@@ -70,6 +72,7 @@ StatusType Uart::transmit() {
       size = static_cast<uint16_t>(next_tx_end_ - next_tx_start_);
 
       // Start transmit
+      DEBUG_INFO("Transmit %d bytes", size)
       hal_sts = HAL_UART_Transmit_IT(uart_handle_, next_tx_start_, size);
 
       if (hal_sts == HAL_OK) {
@@ -98,12 +101,18 @@ StatusType Uart::transmit() {
   return status;
 }
 
-int32_t Uart::receivedBytes() {
-  return (uart_handle_->RxXferSize - uart_handle_->RxXferCount - bytes_serviced_);
+int32_t Uart::receive() {
+  int32_t rx_cnt = uart_handle_->RxXferSize - uart_handle_->RxXferCount - bytes_serviced_;
+
+  if ((rx_cnt == 0) && (uart_handle_->RxXferCount <= RxRestartThreshold)) {
+    startRx();
+  }
+
+  return rx_cnt;
 }
 
 int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
-  int32_t rx_cnt = receivedBytes();
+  int32_t rx_cnt = receive();
 
   if (rx_cnt > 0) {
     if (rx_cnt > static_cast<int32_t>(max_size)) {
@@ -112,17 +121,6 @@ int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
 
     std::memcpy(data, (rx_buffer_ + bytes_serviced_), rx_cnt);
     bytes_serviced_ += rx_cnt;
-
-    if (uart_handle_->RxXferCount < RxRestartThreshold) {
-      // RX buffer filled over restart threshold
-      if (rx_cnt == receivedBytes()) {
-        // No bytes were received since beginning of this function
-        if (startRx() == StatusType::Error) {
-          DEBUG_ERROR("Restart RX failed!");
-          rx_cnt = -1;  // Error
-        }
-      }
-    }
   }
 
   return rx_cnt;
@@ -137,7 +135,10 @@ StatusType Uart::startRx() {
 
   hal_sts = HAL_UART_Receive_IT(uart_handle_, rx_buffer_, RxBufferSize);
   if (hal_sts == HAL_OK) {
+    DEBUG_INFO("Restart rx [ok]")
     status = StatusType::Ok;
+  } else {
+    DEBUG_ERROR("Restart rx [fail]")
   }
 
   return status;

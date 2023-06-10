@@ -16,7 +16,7 @@ namespace uart {
 
 constexpr size_t RxBufferSize = 256;
 constexpr size_t TxBufferSize = 256;
-constexpr size_t RxRestartThreshold = RxBufferSize / 2;
+constexpr size_t RxRestartThreshold = RxBufferSize * 3 / 4;
 
 class Uart {
  public:
@@ -28,7 +28,7 @@ class Uart {
   StatusType scheduleTx(const uint8_t* data, size_t size);
   StatusType transmit();
 
-  int32_t receivedBytes();
+  int32_t receive();
   int32_t serviceRx(uint8_t* data, size_t max_size);
 
  private:

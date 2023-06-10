@@ -17,9 +17,9 @@
 
 #define DEBUG_ENABLE_USB_TASK
 #ifdef DEBUG_ENABLE_USB_TASK
-#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][usbTask]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][usbTask]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][usbTask]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][usbTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][usbTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][usbTsk]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)
@@ -44,6 +44,7 @@ void usbTask(void* /*argument*/) {
 void processMsg(os::msg::BaseMsg* msg) {
   switch (msg->id) {
     case os::msg::MsgId::ServiceTxRequest: {
+      DEBUG_INFO("Service tx request")
       while (CDC_IsTransmit_Busy() == 1) {
       }
       driver::tf::FrameDriver::getInstance().callTxCallback(msg->type);

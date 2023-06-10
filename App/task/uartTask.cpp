@@ -12,17 +12,31 @@
 #include "driver/tf/FrameDriver.hpp"
 #include "os/msg/msg_broker.hpp"
 #include "os/task.hpp"
+#include "srv/debug.hpp"
+
+#define DEBUG_ENABLE_UART_TASK
+#ifdef DEBUG_ENABLE_UART_TASK
+#define DEBUG_INFO(f, ...) srv::debug::print(srv::debug::TERM0, "[INF][uartTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::debug::print(srv::debug::TERM0, "[WRN][uartTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::debug::print(srv::debug::TERM0, "[ERR][uartTsk]: " f "\n", ##__VA_ARGS__);
+#else
+#define DEBUG_INFO(...)
+#define DEBUG_WARN(...)
+#define DEBUG_ERROR(...)
+#endif
 
 namespace task {
 
 int32_t uartTask_postRequest(const uint8_t* data, size_t size);
-int32_t uartTask_getRequest(uint8_t* data, size_t max_size);
+int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size);
 
 static app::uart_srv::UartService uart_service_{};
+static bool pending_request_ = false;
 
 void uartTask(void* /*argument*/) {
   constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::UartMsg;
   static os::msg::BaseMsg msg;
+  int32_t rx_buffer_level;
 
   uart_service_.init();
 
@@ -30,7 +44,7 @@ void uartTask(void* /*argument*/) {
   driver::tf::FrameDriver::getInstance().registerRxCallback(TaskUsbMsgType, uartTask_postRequest);
 
   // Register callback for outgoing msg
-  driver::tf::FrameDriver::getInstance().registerTxCallback(TaskUsbMsgType, uartTask_getRequest);
+  driver::tf::FrameDriver::getInstance().registerTxCallback(TaskUsbMsgType, uartTask_serviceRequest);
 
   /* Infinite loop */
   for (;;) {
@@ -38,13 +52,13 @@ void uartTask(void* /*argument*/) {
       // process msg
     }
 
-    if (uart_service_.run() == true) {
+    rx_buffer_level = uart_service_.run();
+    if ((rx_buffer_level > 0) && (pending_request_ == false)) {
+      DEBUG_INFO("Request service (%d bytes)", rx_buffer_level)
       // Inform UsbTask to service received data
-      os::msg::BaseMsg msg = {
-        .id = os::msg::MsgId::ServiceTxRequest,
-        .type = TaskUsbMsgType,
-      };
+      os::msg::BaseMsg msg = { .id = os::msg::MsgId::ServiceTxRequest, .type = TaskUsbMsgType };
       os::msg::send_msg(os::msg::MsgQueue::UsbTaskQueue, &msg);
+      pending_request_ = true;
     }
   }
 }
@@ -53,8 +67,10 @@ int32_t uartTask_postRequest(const uint8_t* data, size_t size) {
   return task::uart_service_.postRequest(data, size);
 }
 
-int32_t uartTask_getRequest(uint8_t* data, size_t max_size) {
-  return task::uart_service_.serviceRequest(data, max_size);
+int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size) {
+  int32_t size = task::uart_service_.serviceRequest(data, max_size);
+  pending_request_ = false;
+  return size;
 }
 
 }  // namespace task
