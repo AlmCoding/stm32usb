@@ -9,6 +9,7 @@
 #define APP_UART_SRV_UARTSERVICE_HPP_
 
 #include "hal/uart/Uart.hpp"
+#include "proto_c/uart.pb.h"
 
 namespace app {
 namespace uart_srv {
@@ -24,6 +25,9 @@ class UartService {
   int32_t serviceRequest(uint8_t* data, size_t max_size);
 
  private:
+  void serviceDataRequest(uart_proto_UartMsg* msg, size_t max_size);
+  void serviceStatusRequest(uart_proto_UartMsg* msg, size_t max_size);
+
   hal::uart::Uart uart1_;
 };
 

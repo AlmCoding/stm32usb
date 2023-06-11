@@ -18,6 +18,12 @@ constexpr size_t RxBufferSize = 256;
 constexpr size_t TxBufferSize = 256;
 constexpr size_t RxRestartThreshold = RxBufferSize * 3 / 4;
 
+enum class ServiceRequest {
+  None = 0,
+  DataService,
+  StatusService,
+};
+
 typedef struct {
   bool rx_overflow;
   bool tx_overflow;
@@ -37,6 +43,7 @@ class Uart {
   Status_t scheduleTx(const uint8_t* data, size_t size);
   Status_t transmit();
 
+  ServiceRequest getServiceRequest();
   bool serviceStatus(UartStatus* status);
 
   size_t receive();

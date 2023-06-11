@@ -51,11 +51,9 @@ size_t Uart::poll() {
     service_requests++;
   }
 
-  /*
   if (send_status_msg_ == true) {
     service_requests++;
   }
-  */
 
   return service_requests;
 }
@@ -137,6 +135,18 @@ Status_t Uart::transmit() {
   }
 
   return status;
+}
+
+ServiceRequest Uart::getServiceRequest() {
+  ServiceRequest req = ServiceRequest::None;
+
+  if (pending_rx_bytes_ > 0) {
+    req = ServiceRequest::DataService;
+  } else if (send_status_msg_ == true) {
+    req = ServiceRequest::StatusService;
+  }
+
+  return req;
 }
 
 bool Uart::serviceStatus(UartStatus* status) {

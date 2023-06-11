@@ -71,11 +71,12 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_size) {
   /* Create a stream that will write to our buffer. */
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_size);
 
-  uart_msg.which_msg = uart_proto_UartMsg_data_msg_tag;
-
-  int32_t data_size = uart1_.serviceRx(uart_msg.msg.data_msg.data.bytes, max_size);
-  uart_msg.msg.data_msg.data.size = static_cast<uint16_t>(data_size);
-  DEBUG_INFO("Service %d received bytes", data_size);
+  hal::uart::ServiceRequest req = uart1_.getServiceRequest();
+  if (req == hal::uart::ServiceRequest::DataService) {
+    serviceDataRequest(&uart_msg, max_size);
+  } else if (req == hal::uart::ServiceRequest::StatusService) {
+    serviceStatusRequest(&uart_msg, max_size);
+  }
 
   /* Now we are ready to encode the message! */
   if (pb_encode(&stream, uart_proto_UartMsg_fields, &uart_msg) == false) {
@@ -84,6 +85,29 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_size) {
   }
 
   return stream.bytes_written;
+}
+
+void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_size) {
+  msg->which_msg = uart_proto_UartMsg_data_msg_tag;
+
+  size_t data_size = uart1_.serviceRx(msg->msg.data_msg.data.bytes, max_size);
+  msg->msg.data_msg.data.size = static_cast<uint16_t>(data_size);
+  DEBUG_INFO("Service %d received bytes", data_size);
+}
+
+void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_size*/) {
+  hal::uart::UartStatus status;
+  uart1_.serviceStatus(&status);
+
+  msg->which_msg = uart_proto_UartMsg_status_msg_tag;
+
+  msg->msg.status_msg.rx_overflow = status.rx_overflow;
+  msg->msg.status_msg.tx_overflow = status.tx_overflow;
+  msg->msg.status_msg.tx_complete = status.tx_complete;
+  msg->msg.status_msg.rx_space = status.rx_space;
+  msg->msg.status_msg.tx_space = status.tx_space;
+
+  DEBUG_INFO("Service status info");
 }
 
 } /* namespace uart_srv */
