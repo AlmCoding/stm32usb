@@ -14,15 +14,15 @@
 #define BITS_SET(reg, bits) ((bool)((reg & bits) == bits))
 #define BITS_NOT_SET(reg, bits) (!BITS_SET(reg, bits))
 
-typedef uint32_t TickNum;
+typedef uint32_t TickNum_t;
 typedef int32_t MilliSeconds;
 typedef int32_t MicroSeconds;
 
-constexpr TickNum Ticks1ms = 1;
-constexpr TickNum Ticks5ms = 5 * Ticks1ms;
-constexpr TickNum Ticks10ms = 10 * Ticks1ms;
+constexpr TickNum_t Ticks1ms = 1;
+constexpr TickNum_t Ticks5ms = 5 * Ticks1ms;
+constexpr TickNum_t Ticks10ms = 10 * Ticks1ms;
 
-enum class StatusType {
+enum class Status_t {
   Error = -1,
   Ok = 0,
   Busy = 1,

@@ -37,9 +37,8 @@ void UartService::init() {
   uart1_.init();
 }
 
-int32_t UartService::run() {
-  uart1_.transmit();
-  return uart1_.receive();
+int32_t UartService::poll() {
+  return uart1_.poll();
 }
 
 int32_t UartService::postRequest(const uint8_t* data, size_t size) {
@@ -47,19 +46,18 @@ int32_t UartService::postRequest(const uint8_t* data, size_t size) {
 
   /* Allocate space for the decoded message. */
   uart_proto_UartMsg uart_msg = uart_proto_UartMsg_init_zero;
-
   /* Create a stream that reads from the buffer. */
   pb_istream_t stream = pb_istream_from_buffer(data, size);
 
   /* Now we are ready to decode the message. */
   if (pb_decode(&stream, uart_proto_UartMsg_fields, &uart_msg) == false) {
-    DEBUG_ERROR("ProtoBuf decode [fail]");
+    DEBUG_ERROR("ProtoBuf decode [failed]");
     return -1;
   }
 
-  if (uart_msg.type == uart_proto_MsgType::uart_proto_MsgType_DATA) {
-    if (uart1_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data.data.bytes), uart_msg.msg.data.data.size) ==
-        StatusType::Ok) {
+  if (uart_msg.which_msg == uart_proto_UartMsg_data_msg_tag) {
+    if (uart1_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data_msg.data.bytes), uart_msg.msg.data_msg.data.size) ==
+        Status_t::Ok) {
       status = 0;
     }
   }
@@ -68,7 +66,24 @@ int32_t UartService::postRequest(const uint8_t* data, size_t size) {
 }
 
 int32_t UartService::serviceRequest(uint8_t* data, size_t max_size) {
-  return uart1_.serviceRx(data, max_size);
+  /* Allocate space for the decoded message. */
+  uart_proto_UartMsg uart_msg = uart_proto_UartMsg_init_zero;
+  /* Create a stream that will write to our buffer. */
+  pb_ostream_t stream = pb_ostream_from_buffer(data, max_size);
+
+  uart_msg.which_msg = uart_proto_UartMsg_data_msg_tag;
+
+  int32_t data_size = uart1_.serviceRx(uart_msg.msg.data_msg.data.bytes, max_size);
+  uart_msg.msg.data_msg.data.size = static_cast<uint16_t>(data_size);
+  DEBUG_INFO("Service %d received bytes", data_size);
+
+  /* Now we are ready to encode the message! */
+  if (pb_encode(&stream, uart_proto_UartMsg_fields, &uart_msg) == false) {
+    DEBUG_ERROR("ProtoBuf encode [failed]");
+    return -1;
+  }
+
+  return stream.bytes_written;
 }
 
 } /* namespace uart_srv */

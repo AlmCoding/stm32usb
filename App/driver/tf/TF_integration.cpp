@@ -14,6 +14,8 @@ extern "C" {
  */
 
 void TF_WriteImpl(TinyFrame* /*tf*/, const uint8_t* buff, uint32_t len) {
+  while (CDC_IsTransmit_Busy() == 1) {
+  }
   CDC_Transmit_FS(const_cast<uint8_t*>(buff), static_cast<uint16_t>(len));
 }
 

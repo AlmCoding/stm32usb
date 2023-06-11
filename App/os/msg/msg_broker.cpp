@@ -23,7 +23,7 @@ bool send_msg(MsgQueue queue, BaseMsg* msg) {
   return success;
 }
 
-bool receive_msg(MsgQueue queue, BaseMsg* msg, TickNum timeout) {
+bool receive_msg(MsgQueue queue, BaseMsg* msg, TickNum_t timeout) {
   bool success = false;
 
   osMessageQueueId_t qhdl = os::getQueue(queue);

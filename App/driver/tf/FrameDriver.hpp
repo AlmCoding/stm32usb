@@ -30,10 +30,10 @@ class FrameDriver {
     return instance;
   }
 
-  StatusType registerTxCallback(app::usb::UsbMsgType type, app::usb::TxCallback callback);
+  Status_t registerTxCallback(app::usb::UsbMsgType type, app::usb::TxCallback callback);
   void callTxCallback(app::usb::UsbMsgType type);
 
-  StatusType registerRxCallback(app::usb::UsbMsgType type, app::usb::RxCallback callback);
+  Status_t registerRxCallback(app::usb::UsbMsgType type, app::usb::RxCallback callback);
   void callRxCallback(app::usb::UsbMsgType type, const uint8_t* data, size_t size);
 
   // Forward data to tiny frame (downstream)

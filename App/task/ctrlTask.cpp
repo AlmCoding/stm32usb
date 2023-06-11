@@ -11,6 +11,7 @@
 #include "driver/tf/FrameDriver.hpp"
 #include "os/msg/msg_broker.hpp"
 #include "os/task.hpp"
+#include "srv/Stopwatch.hpp"
 #include "srv/debug.hpp"
 #include "task/uartTask.hpp"
 #include "usbd_cdc_if.h"
@@ -42,12 +43,17 @@ void ctrlTask(void* /*argument*/) {
 }
 
 void processMsg(os::msg::BaseMsg* msg) {
+  srv::Stopwatch stopwatch{};
+
   switch (msg->id) {
     case os::msg::MsgId::ServiceTxRequest: {
-      DEBUG_INFO("Service tx request")
-      while (CDC_IsTransmit_Busy() == 1) {
+      while (msg->cnt > 0) {
+        stopwatch.start();
+        driver::tf::FrameDriver::getInstance().callTxCallback(msg->type);
+        stopwatch.stop();
+        DEBUG_INFO("Service tx request (%d): %d us", msg->cnt, stopwatch.time());
+        msg->cnt--;
       }
-      driver::tf::FrameDriver::getInstance().callTxCallback(msg->type);
       break;
     }
     default: {

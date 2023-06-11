@@ -31,7 +31,7 @@ int32_t uartTask_postRequest(const uint8_t* data, size_t size);
 int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size);
 
 static app::uart_srv::UartService uart_service_{};
-static bool pending_request_ = false;
+static int32_t pending_requests_ = 0;
 
 void uartTask(void* /*argument*/) {
   constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::UartMsg;
@@ -51,13 +51,16 @@ void uartTask(void* /*argument*/) {
       // process msg
     }
 
-    int32_t rx_buffer_level = uart_service_.run();
-    if ((rx_buffer_level > 0) && (pending_request_ == false)) {
-      DEBUG_INFO("Request service (%d bytes)", rx_buffer_level)
-      // Inform UsbTask to service received data
-      os::msg::BaseMsg req_msg = { .id = os::msg::MsgId::ServiceTxRequest, .type = TaskUsbMsgType };
+    int32_t service_requests = uart_service_.poll();
+    if ((service_requests > 0) && (pending_requests_ == 0)) {
+      // Inform CtrlTask to service received data
+      os::msg::BaseMsg req_msg = {
+        .id = os::msg::MsgId::ServiceTxRequest,
+        .type = TaskUsbMsgType,
+        .cnt = service_requests,
+      };
       os::msg::send_msg(os::msg::MsgQueue::CtrlTaskQueue, &req_msg);
-      pending_request_ = true;
+      pending_requests_ = service_requests;
     }
   }
 }
@@ -68,7 +71,7 @@ int32_t uartTask_postRequest(const uint8_t* data, size_t size) {
 
 int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size) {
   int32_t size = uart_service_.serviceRequest(data, max_size);
-  pending_request_ = false;
+  pending_requests_--;
   return size;
 }
 

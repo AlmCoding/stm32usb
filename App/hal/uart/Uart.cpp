@@ -27,118 +27,181 @@ Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {}
 Uart::~Uart() {}
 
 void Uart::init() {
-  bytes_serviced_ = 0;
+  serviced_rx_bytes_ = 0;
+  pending_rx_bytes_ = 0;
+  free_rx_space_ = RxBufferSize;
+  free_tx_space_ = TxBufferSize;
+
   next_tx_start_ = tx_buffer_;
   next_tx_end_ = tx_buffer_;
+
+  rx_overflow_ = false;
+  tx_overflow_ = false;
+  tx_complete_ = true;
+  send_status_msg_ = false;
 
   startRx();
 }
 
-StatusType Uart::scheduleTx(const uint8_t* data, size_t size) {
-  StatusType status;
-  size_t free_space = tx_buffer_ + TxBufferSize - next_tx_end_;
+size_t Uart::poll() {
+  size_t service_requests = 0;
 
-  if (free_space >= size) {
-    DEBUG_INFO("Schedule %d bytes for transmit", size)
+  transmit();
+  if (receive() > 0) {
+    service_requests++;
+  }
+
+  /*
+  if (send_status_msg_ == true) {
+    service_requests++;
+  }
+  */
+
+  return service_requests;
+}
+
+size_t Uart::updateFreeTxSpace() {
+  free_tx_space_ = tx_buffer_ + TxBufferSize - next_tx_end_;
+  return free_tx_space_;
+}
+
+Status_t Uart::scheduleTx(const uint8_t* data, size_t size) {
+  Status_t status;
+
+  if (updateFreeTxSpace() >= size) {
+    DEBUG_INFO("Schedule %d bytes for tx", size)
     std::memcpy(next_tx_end_, data, size);
     next_tx_end_ += size;
 
+    // Trigger uart task for fast transmit start
     os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
     os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
-    status = StatusType::Ok;
+
+    tx_complete_ = false;
+    tx_overflow_ = false;
+    status = Status_t::Ok;
 
   } else {
-    DEBUG_ERROR("Tx buffer overflow");
-    status = StatusType::Error;
+    DEBUG_ERROR("Tx buffer overflow!");
+    tx_overflow_ = true;
+    send_status_msg_ = true;
+    status = Status_t::Error;
   }
 
   return status;
 }
 
-StatusType Uart::transmit() {
-  StatusType status;
+Status_t Uart::transmit() {
+  Status_t status;
   HAL_StatusTypeDef hal_sts = HAL_ERROR;
 
   // Recover from error
   if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_ERROR) == true) {
-    DEBUG_ERROR("TX error state")
+    DEBUG_ERROR("Tx error state")
     HAL_UART_AbortTransmit(uart_handle_);
   }
 
-  if (BITS_NOT_SET(uart_handle_->gState, HAL_UART_STATE_BUSY_TX) == true) {
-    // Check for new data
-    if (next_tx_end_ != next_tx_start_) {
-      uint16_t size = static_cast<uint16_t>(next_tx_end_ - next_tx_start_);
+  // Return if busy
+  if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_BUSY_TX) == true) {
+    return Status_t::Busy;
+  }
 
-      // Start transmit
-      DEBUG_INFO("Transmit %d bytes", size)
-      hal_sts = HAL_UART_Transmit_IT(uart_handle_, next_tx_start_, size);
+  // Check for new data
+  if (next_tx_end_ != next_tx_start_) {
+    uint16_t size = static_cast<uint16_t>(next_tx_end_ - next_tx_start_);
 
-      if (hal_sts == HAL_OK) {
-        next_tx_start_ = next_tx_end_;
-        status = StatusType::Ok;
-      } else {
-        status = StatusType::Error;
-      }
+    // Start transmit
+    DEBUG_INFO("Transmit %d bytes", size)
+    hal_sts = HAL_UART_Transmit_IT(uart_handle_, next_tx_start_, size);
 
-    } else if (next_tx_start_ != tx_buffer_) {
-      DEBUG_INFO("Reset tx buffer")
-      // No new data and uart ready
-      next_tx_start_ = tx_buffer_;
-      next_tx_end_ = tx_buffer_;
-      status = StatusType::Ok;
-
+    if (hal_sts == HAL_OK) {
+      next_tx_start_ = next_tx_end_;
+      status = Status_t::Ok;
     } else {
-      // Nothing to be done
-      status = StatusType::Ok;
+      status = Status_t::Error;
     }
 
+  } else if (next_tx_start_ != tx_buffer_) {
+    // No new data and uart ready => reset tx buffer
+    DEBUG_INFO("Tx complete")
+    next_tx_start_ = tx_buffer_;
+    next_tx_end_ = tx_buffer_;
+    updateFreeTxSpace();
+    tx_complete_ = true;
+    send_status_msg_ = true;
+    status = Status_t::Ok;
+
   } else {
-    // Busy
-    status = StatusType::Busy;
+    // Nothing to be done
+    status = Status_t::Ok;
   }
 
   return status;
 }
 
-int32_t Uart::receive() {
-  int32_t rx_cnt = uart_handle_->RxXferSize - uart_handle_->RxXferCount - bytes_serviced_;
+bool Uart::serviceStatus(UartStatus* status) {
+  bool send_msg = send_status_msg_;
 
-  if ((rx_cnt == 0) && (uart_handle_->RxXferCount <= RxRestartThreshold)) {
-    startRx();
+  if (send_status_msg_ == true) {
+    status->rx_overflow = rx_overflow_;
+    status->tx_overflow = tx_overflow_;
+    status->tx_complete = tx_complete_;
+    status->rx_space = free_rx_space_;
+    status->tx_space = free_tx_space_;
+    send_status_msg_ = false;
   }
 
-  return rx_cnt;
+  return send_msg;
 }
 
-int32_t Uart::serviceRx(uint8_t* data, size_t max_size) {
-  int32_t rx_cnt = receive();
+size_t Uart::receive() {
+  pending_rx_bytes_ = uart_handle_->RxXferSize - uart_handle_->RxXferCount - serviced_rx_bytes_;
+  free_rx_space_ = uart_handle_->RxXferCount;
+
+  if ((pending_rx_bytes_ == 0) && (free_rx_space_ <= RxRestartThreshold)) {
+    startRx();
+    rx_overflow_ = false;
+
+  } else if (pending_rx_bytes_ >= uart_handle_->RxXferSize) {
+    DEBUG_ERROR("Rx buffer overflow!")
+    rx_overflow_ = true;
+    send_status_msg_ = true;
+  }
+
+  return pending_rx_bytes_;
+}
+
+size_t Uart::serviceRx(uint8_t* data, size_t max_size) {
+  size_t rx_cnt = pending_rx_bytes_;
+
+  if (rx_cnt > max_size) {
+    rx_cnt = max_size;
+  }
 
   if (rx_cnt > 0) {
-    if (rx_cnt > static_cast<int32_t>(max_size)) {
-      rx_cnt = max_size;
-    }
-
-    std::memcpy(data, (rx_buffer_ + bytes_serviced_), rx_cnt);
-    bytes_serviced_ += rx_cnt;
+    std::memcpy(data, (rx_buffer_ + serviced_rx_bytes_), rx_cnt);
+    serviced_rx_bytes_ += rx_cnt;
+    pending_rx_bytes_ -= rx_cnt;
   }
 
   return rx_cnt;
 }
 
-StatusType Uart::startRx() {
-  StatusType status = StatusType::Error;
-  HAL_StatusTypeDef hal_sts = HAL_ERROR;
+Status_t Uart::startRx() {
+  Status_t status;
+  HAL_StatusTypeDef hal_sts;
 
-  bytes_serviced_ = 0;
+  serviced_rx_bytes_ = 0;
   HAL_UART_AbortReceive(uart_handle_);
 
   hal_sts = HAL_UART_Receive_IT(uart_handle_, rx_buffer_, RxBufferSize);
   if (hal_sts == HAL_OK) {
     DEBUG_INFO("Restart rx [ok]")
-    status = StatusType::Ok;
+    status = Status_t::Ok;
+
   } else {
-    DEBUG_ERROR("Restart rx [fail]")
+    DEBUG_ERROR("Restart rx [failed]")
+    status = Status_t::Error;
   }
 
   return status;

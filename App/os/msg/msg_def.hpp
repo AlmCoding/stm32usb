@@ -24,9 +24,12 @@ enum class MsgId {
   ServiceTxRequest,
 };
 
+typedef int32_t RequestCnt;
+
 typedef struct {
   MsgId id;
   app::usb::UsbMsgType type;
+  RequestCnt cnt;
 } BaseMsg;
 
 }  // namespace msg
