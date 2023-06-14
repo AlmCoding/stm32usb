@@ -11,17 +11,15 @@
 #include "common.hpp"
 #include "main.h"
 
-namespace hal {
-namespace uart {
+namespace hal::uart {
 
-constexpr size_t RxBufferSize = 256;
-constexpr size_t TxBufferSize = 256;
-constexpr size_t RxRestartThreshold = RxBufferSize * 3 / 4;
+constexpr size_t RxBufferSize = 128;
+constexpr size_t TxBufferSize = 128;
 
 enum class ServiceRequest {
   None = 0,
-  DataService,
-  StatusService,
+  SendRxData,
+  SendStatus,
 };
 
 typedef struct {
@@ -37,41 +35,37 @@ class Uart {
   Uart(UART_HandleTypeDef* uart_handle);
   virtual ~Uart();
 
-  void init();
+  Status_t init();
   size_t poll();
 
   Status_t scheduleTx(const uint8_t* data, size_t size);
-  Status_t transmit();
 
   ServiceRequest getServiceRequest();
-  bool serviceStatus(UartStatus* status);
-
-  size_t receive();
   size_t serviceRx(uint8_t* data, size_t max_size);
+  void serviceStatus(UartStatus* status);
 
  private:
-  size_t updateFreeTxSpace();
   Status_t startRx();
+  bool isRxBufferEmpty();
+  Status_t transmit();
 
   UART_HandleTypeDef* uart_handle_;
   uint8_t rx_buffer_[RxBufferSize];
   uint8_t tx_buffer_[TxBufferSize];
 
-  uint8_t* next_tx_start_ = tx_buffer_;
-  uint8_t* next_tx_end_ = tx_buffer_;
-
-  size_t serviced_rx_bytes_ = 0;
-  size_t pending_rx_bytes_ = 0;
-  size_t free_rx_space_ = RxBufferSize;
-  size_t free_tx_space_ = TxBufferSize;
-
-  bool rx_overflow_ = false;
-  bool tx_overflow_ = false;
+  size_t free_tx_space_ = sizeof(tx_buffer_);
+  size_t next_tx_start_ = 0;
+  size_t next_tx_end_ = 0;
   bool tx_complete_ = true;
+  bool tx_overflow_ = false;
+
+  size_t rx_read_pos_ = 0;
+  bool rx_overflow_ = false;
+
+  bool send_data_msg_ = false;
   bool send_status_msg_ = false;
 };
 
-} /* namespace uart */
-} /* namespace hal */
+} /* namespace hal::uart */
 
 #endif /* HAL_UART_UART_HPP_ */

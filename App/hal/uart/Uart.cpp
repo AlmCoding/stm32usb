@@ -22,32 +22,35 @@
 
 namespace hal::uart {
 
+#define DMA_RX_WRITE_POS ((RxBufferSize - uart_handle_->hdmarx->Instance->CNDTR) & (RxBufferSize - 1))
+
 Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {}
 
 Uart::~Uart() {}
 
-void Uart::init() {
-  serviced_rx_bytes_ = 0;
-  pending_rx_bytes_ = 0;
-  free_rx_space_ = RxBufferSize;
-  free_tx_space_ = TxBufferSize;
-
-  next_tx_start_ = tx_buffer_;
-  next_tx_end_ = tx_buffer_;
-
-  rx_overflow_ = false;
-  tx_overflow_ = false;
+Status_t Uart::init() {
+  free_tx_space_ = sizeof(tx_buffer_);
+  next_tx_start_ = 0;
+  next_tx_end_ = 0;
   tx_complete_ = true;
+  tx_overflow_ = false;
+
+  rx_read_pos_ = 0;
+  rx_overflow_ = false;
+
+  send_data_msg_ = false;
   send_status_msg_ = false;
 
-  startRx();
+  return startRx();
 }
 
 size_t Uart::poll() {
   size_t service_requests = 0;
 
   transmit();
-  if (receive() > 0) {
+
+  if (isRxBufferEmpty() == false) {
+    send_data_msg_ = true;
     service_requests++;
   }
 
@@ -58,25 +61,60 @@ size_t Uart::poll() {
   return service_requests;
 }
 
-size_t Uart::updateFreeTxSpace() {
-  free_tx_space_ = tx_buffer_ + TxBufferSize - next_tx_end_;
-  return free_tx_space_;
+Status_t Uart::startRx() {
+  Status_t status;
+  HAL_StatusTypeDef rx_status;
+
+  rx_status = HAL_UART_Receive_DMA(uart_handle_, rx_buffer_, sizeof(rx_buffer_));
+  if (rx_status == HAL_OK) {
+    DEBUG_INFO("Start rx [ok]")
+    status = Status_t::Ok;
+
+  } else {
+    DEBUG_INFO("Start rx [failed]")
+    status = Status_t::Error;
+  }
+
+  return status;
+}
+
+bool Uart::isRxBufferEmpty() {
+  if (rx_read_pos_ == DMA_RX_WRITE_POS) {
+    return true;
+  }
+  return false;
 }
 
 Status_t Uart::scheduleTx(const uint8_t* data, size_t size) {
   Status_t status;
 
-  if (updateFreeTxSpace() >= size) {
+  if (free_tx_space_ >= size) {
     DEBUG_INFO("Schedule %d bytes for tx", size)
-    std::memcpy(next_tx_end_, data, size);
-    next_tx_end_ += size;
+
+    size_t new_tx_end;
+    size_t tx_size = size;
+    size_t size_to_buf_end = sizeof(tx_buffer_) - next_tx_end_;
+
+    if (size > size_to_buf_end) {
+      tx_size = size_to_buf_end;
+    }
+
+    std::memcpy(tx_buffer_ + next_tx_end_, data, tx_size);
+    new_tx_end = next_tx_end_ + tx_size;
+    size -= tx_size;
+
+    if (size > 0) {
+      std::memcpy(tx_buffer_, data, size);
+      new_tx_end = size;
+    }
+
+    next_tx_end_ = new_tx_end;
+    tx_complete_ = false;
+    tx_overflow_ = false;
 
     // Trigger uart task for fast transmit start
     os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
     os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
-
-    tx_complete_ = false;
-    tx_overflow_ = false;
     status = Status_t::Ok;
 
   } else {
@@ -91,43 +129,46 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t size) {
 
 Status_t Uart::transmit() {
   Status_t status;
-  HAL_StatusTypeDef hal_sts = HAL_ERROR;
+  HAL_StatusTypeDef tx_status;
 
   // Recover from error
   if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_ERROR) == true) {
-    DEBUG_ERROR("Tx error state")
-    HAL_UART_AbortTransmit(uart_handle_);
+    DEBUG_ERROR("Tx error, try to recover...")
+    HAL_UART_DMAStop(uart_handle_);
   }
 
-  // Return if busy
+  // Return if tx busy
   if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_BUSY_TX) == true) {
     return Status_t::Busy;
   }
 
   // Check for new data
   if (next_tx_end_ != next_tx_start_) {
-    uint16_t size = static_cast<uint16_t>(next_tx_end_ - next_tx_start_);
+    uint16_t tx_size;
+    size_t new_tx_start;
 
-    // Start transmit
-    DEBUG_INFO("Transmit %d bytes", size)
-    hal_sts = HAL_UART_Transmit_IT(uart_handle_, next_tx_start_, size);
+    if (next_tx_start_ < next_tx_end_) {
+      tx_size = static_cast<uint16_t>(next_tx_end_ - next_tx_start_);
+      new_tx_start = next_tx_end_;
 
-    if (hal_sts == HAL_OK) {
-      next_tx_start_ = next_tx_end_;
-      status = Status_t::Ok;
     } else {
-      status = Status_t::Error;
+      tx_size = static_cast<uint16_t>(sizeof(tx_buffer_) - next_tx_start_);
+      new_tx_start = 0;
     }
 
-  } else if (next_tx_start_ != tx_buffer_) {
-    // No new data and uart ready => reset tx buffer
-    DEBUG_INFO("Tx complete")
-    next_tx_start_ = tx_buffer_;
-    next_tx_end_ = tx_buffer_;
-    updateFreeTxSpace();
-    tx_complete_ = true;
-    send_status_msg_ = true;
-    status = Status_t::Ok;
+    // Start transmit
+    DEBUG_INFO("Transmit %d bytes", tx_size);
+
+    tx_status = HAL_UART_Transmit_DMA(uart_handle_, tx_buffer_ + next_tx_start_, tx_size);
+    if (tx_status == HAL_OK) {
+      next_tx_start_ = new_tx_start;
+      DEBUG_INFO("Start tx [ok]")
+      status = Status_t::Ok;
+
+    } else {
+      DEBUG_INFO("Start tx [failed]")
+      status = Status_t::Error;
+    }
 
   } else {
     // Nothing to be done
@@ -140,81 +181,55 @@ Status_t Uart::transmit() {
 ServiceRequest Uart::getServiceRequest() {
   ServiceRequest req = ServiceRequest::None;
 
-  if (pending_rx_bytes_ > 0) {
-    req = ServiceRequest::DataService;
+  if (send_data_msg_ == true) {
+    req = ServiceRequest::SendRxData;
+
   } else if (send_status_msg_ == true) {
-    req = ServiceRequest::StatusService;
+    req = ServiceRequest::SendStatus;
   }
 
   return req;
 }
 
-bool Uart::serviceStatus(UartStatus* status) {
-  bool send_msg = send_status_msg_;
-
-  if (send_status_msg_ == true) {
-    status->rx_overflow = rx_overflow_;
-    status->tx_overflow = tx_overflow_;
-    status->tx_complete = tx_complete_;
-    status->rx_space = free_rx_space_;
-    status->tx_space = free_tx_space_;
-    send_status_msg_ = false;
-  }
-
-  return send_msg;
-}
-
-size_t Uart::receive() {
-  pending_rx_bytes_ = uart_handle_->RxXferSize - uart_handle_->RxXferCount - serviced_rx_bytes_;
-  free_rx_space_ = uart_handle_->RxXferCount;
-
-  if ((pending_rx_bytes_ == 0) && (free_rx_space_ <= RxRestartThreshold)) {
-    startRx();
-    rx_overflow_ = false;
-
-  } else if (pending_rx_bytes_ >= uart_handle_->RxXferSize) {
-    DEBUG_ERROR("Rx buffer overflow!")
-    rx_overflow_ = true;
-    send_status_msg_ = true;
-  }
-
-  return pending_rx_bytes_;
-}
-
 size_t Uart::serviceRx(uint8_t* data, size_t max_size) {
-  size_t rx_cnt = pending_rx_bytes_;
+  int32_t rx_cnt;
+  bool rx_circulation = false;
+  size_t rx_write_pos = DMA_RX_WRITE_POS;
 
-  if (rx_cnt > max_size) {
+  rx_cnt = rx_write_pos - rx_read_pos_;
+  if (rx_cnt < 0) {
+    rx_cnt = sizeof(rx_buffer_) - rx_read_pos_;
+    rx_circulation = true;
+  }
+
+  if (rx_cnt > static_cast<int32_t>(max_size)) {
     rx_cnt = max_size;
   }
 
-  if (rx_cnt > 0) {
-    std::memcpy(data, (rx_buffer_ + serviced_rx_bytes_), rx_cnt);
-    serviced_rx_bytes_ += rx_cnt;
-    pending_rx_bytes_ -= rx_cnt;
+  std::memcpy(data, rx_buffer_ + rx_read_pos_, rx_cnt);
+
+  if (rx_circulation == true) {
+    if ((rx_write_pos + rx_cnt) > max_size) {
+      rx_write_pos = max_size - rx_cnt;
+    }
+
+    if (rx_write_pos > 0) {
+      std::memcpy(data + rx_cnt, rx_buffer_, rx_write_pos);
+      rx_cnt += rx_write_pos;
+    }
   }
 
+  rx_read_pos_ = rx_write_pos;
   return rx_cnt;
 }
 
-Status_t Uart::startRx() {
-  Status_t status;
-  HAL_StatusTypeDef hal_sts;
-
-  serviced_rx_bytes_ = 0;
-  HAL_UART_AbortReceive(uart_handle_);
-
-  hal_sts = HAL_UART_Receive_IT(uart_handle_, rx_buffer_, RxBufferSize);
-  if (hal_sts == HAL_OK) {
-    DEBUG_INFO("Restart rx [ok]")
-    status = Status_t::Ok;
-
-  } else {
-    DEBUG_ERROR("Restart rx [failed]")
-    status = Status_t::Error;
-  }
-
-  return status;
+void Uart::serviceStatus(UartStatus* status) {
+  status->rx_overflow = rx_overflow_;
+  status->tx_overflow = tx_overflow_;
+  status->tx_complete = tx_complete_;
+  status->rx_space = uart_handle_->RxXferCount;
+  status->tx_space = free_tx_space_;
+  send_status_msg_ = false;
 }
 
 } /* namespace hal::uart */

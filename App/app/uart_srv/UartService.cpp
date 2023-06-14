@@ -72,9 +72,9 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_size) {
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_size);
 
   hal::uart::ServiceRequest req = uart1_.getServiceRequest();
-  if (req == hal::uart::ServiceRequest::DataService) {
+  if (req == hal::uart::ServiceRequest::SendRxData) {
     serviceDataRequest(&uart_msg, max_size);
-  } else if (req == hal::uart::ServiceRequest::StatusService) {
+  } else if (req == hal::uart::ServiceRequest::SendStatus) {
     serviceStatusRequest(&uart_msg, max_size);
   }
 
@@ -92,7 +92,7 @@ void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_size) {
 
   size_t data_size = uart1_.serviceRx(msg->msg.data_msg.data.bytes, max_size);
   msg->msg.data_msg.data.size = static_cast<uint16_t>(data_size);
-  DEBUG_INFO("Service %d received bytes", data_size);
+  DEBUG_INFO("Service %d bytes", data_size);
 }
 
 void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_size*/) {
