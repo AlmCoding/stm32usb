@@ -13,8 +13,8 @@
 
 namespace hal::uart {
 
-constexpr size_t RxBufferSize = 128;
-constexpr size_t TxBufferSize = 128;
+constexpr size_t RxBufferSize = 256;
+constexpr size_t TxBufferSize = 256;
 
 enum class ServiceRequest {
   None = 0,
@@ -47,13 +47,14 @@ class Uart {
  private:
   Status_t startRx();
   bool isRxBufferEmpty();
-  Status_t transmit();
+  size_t getFreeTxSpace();
+  Status_t startTx();
+  void txCpltCallback();
 
   UART_HandleTypeDef* uart_handle_;
   uint8_t rx_buffer_[RxBufferSize];
   uint8_t tx_buffer_[TxBufferSize];
 
-  size_t free_tx_space_ = sizeof(tx_buffer_);
   size_t next_tx_start_ = 0;
   size_t next_tx_end_ = 0;
   bool tx_complete_ = true;
@@ -63,7 +64,9 @@ class Uart {
   bool rx_overflow_ = false;
 
   bool send_data_msg_ = false;
-  bool send_status_msg_ = false;
+  size_t send_status_msg_ = 0;
+
+  friend class UartIrq;
 };
 
 } /* namespace hal::uart */

@@ -51,8 +51,8 @@ void processMsg(os::msg::BaseMsg* msg) {
         stopwatch.start();
         driver::tf::FrameDriver::getInstance().callTxCallback(msg->type);
         stopwatch.stop();
-        DEBUG_INFO("USB tx (%d): %d us", msg->cnt, stopwatch.time());
         msg->cnt--;
+        DEBUG_INFO("USB tx (%d): %d us", msg->cnt, stopwatch.time());
       }
       break;
     }
