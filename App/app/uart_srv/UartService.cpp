@@ -56,8 +56,8 @@ int32_t UartService::postRequest(const uint8_t* data, size_t size) {
   }
 
   if (uart_msg.which_msg == uart_proto_UartMsg_data_msg_tag) {
-    if (uart1_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data_msg.data.bytes), uart_msg.msg.data_msg.data.size) ==
-        Status_t::Ok) {
+    if (uart1_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data_msg.data.bytes), uart_msg.msg.data_msg.data.size,
+                          uart_msg.sequence_number) == Status_t::Ok) {
       status = 0;
     }
   }
@@ -71,7 +71,9 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_size) {
   /* Create a stream that will write to our buffer. */
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_size);
 
-  hal::uart::ServiceRequest req = uart1_.getServiceRequest();
+  hal::uart::ServiceRequest req;
+  uart_msg.sequence_number = uart1_.getServiceRequest(&req);
+
   if (req == hal::uart::ServiceRequest::SendRxData) {
     serviceDataRequest(&uart_msg, max_size);
   } else if (req == hal::uart::ServiceRequest::SendStatus) {

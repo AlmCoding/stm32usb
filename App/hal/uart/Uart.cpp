@@ -42,7 +42,8 @@ Status_t Uart::init() {
   rx_overflow_ = false;
 
   send_data_msg_ = false;
-  send_status_msg_ = 0;
+  send_status_msg_ = false;
+  seqence_number_ = 0;
 
   return startRx();
 }
@@ -65,7 +66,7 @@ size_t Uart::poll() {
     service_requests++;
   }
 
-  if (send_status_msg_ > 0) {
+  if (send_status_msg_ == true) {
     service_requests++;
   }
 
@@ -115,7 +116,7 @@ size_t Uart::getFreeTxSpace() {
   return free_tx_space;
 }
 
-Status_t Uart::scheduleTx(const uint8_t* data, size_t size) {
+Status_t Uart::scheduleTx(const uint8_t* data, size_t size, size_t seq_num) {
   Status_t status;
 
   if (getFreeTxSpace() >= size) {
@@ -152,12 +153,11 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t size) {
   } else {
     DEBUG_ERROR("Tx buffer overflow!");
     tx_overflow_ = true;
-    if (send_status_msg_ < 2) {
-      send_status_msg_++;
-    }
+    send_status_msg_ = true;
     status = Status_t::Error;
   }
 
+  seqence_number_ = seq_num;
   return status;
 }
 
@@ -220,23 +220,21 @@ void Uart::txCpltCallback() {
     tx_complete_ = true;
   }
 
-  tx_overflow_ = false;
-  if (send_status_msg_ < 2) {
-    send_status_msg_++;
-  }
+  send_status_msg_ = true;
 }
 
-ServiceRequest Uart::getServiceRequest() {
-  ServiceRequest req = ServiceRequest::None;
+size_t Uart::getServiceRequest(ServiceRequest* req) {
+  *req = ServiceRequest::None;
 
   if (send_data_msg_ == true) {
-    req = ServiceRequest::SendRxData;
+    *req = ServiceRequest::SendRxData;
 
-  } else if (send_status_msg_ > 0) {
-    req = ServiceRequest::SendStatus;
+  } else if (send_status_msg_ == true) {
+    send_status_msg_ = false;
+    *req = ServiceRequest::SendStatus;
   }
 
-  return req;
+  return seqence_number_;
 }
 
 size_t Uart::serviceRx(uint8_t* data, size_t max_size) {
@@ -272,15 +270,12 @@ size_t Uart::serviceRx(uint8_t* data, size_t max_size) {
 }
 
 void Uart::serviceStatus(UartStatus* status) {
-  status->rx_overflow = rx_overflow_;
-  status->tx_overflow = tx_overflow_;
   status->tx_complete = tx_complete_;
-  status->rx_space = uart_handle_->RxXferCount;
+  status->tx_overflow = tx_overflow_;
   status->tx_space = getFreeTxSpace();
 
-  if (send_status_msg_ > 0) {
-    send_status_msg_--;
-  }
+  status->rx_overflow = rx_overflow_;
+  status->rx_space = 0;  // uart_handle_->RxXferCount;
 }
 
 } /* namespace hal::uart */
