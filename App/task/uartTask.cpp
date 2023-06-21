@@ -53,6 +53,7 @@ void uartTask(void* /*argument*/) {
 
     int32_t service_requests = uart_service_.poll();
     if ((service_requests > 0) && (pending_requests_ == 0)) {
+      DEBUG_INFO("Request service from ctrlTask.")
       // Inform CtrlTask to service received data
       os::msg::BaseMsg req_msg = {
         .id = os::msg::MsgId::ServiceTxRequest,

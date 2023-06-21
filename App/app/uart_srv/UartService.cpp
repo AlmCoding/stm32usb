@@ -109,7 +109,7 @@ void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_siz
   msg->msg.status_msg.rx_space = status.rx_space;
   msg->msg.status_msg.tx_space = status.tx_space;
 
-  DEBUG_INFO("Service status info");
+  DEBUG_INFO("Service status info (seq: %d)", msg->sequence_number);
 }
 
 } /* namespace uart_srv */

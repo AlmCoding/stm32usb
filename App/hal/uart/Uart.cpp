@@ -24,7 +24,7 @@
 namespace hal::uart {
 
 #define DMA_RX_WRITE_POS ((RxBufferSize - uart_handle_->hdmarx->Instance->CNDTR) & (RxBufferSize - 1))
-#define DMA_TX_WRITE_POS ((TxBufferSize - uart_handle_->hdmatx->Instance->CNDTR) & (TxBufferSize - 1))
+#define DMA_TX_READ_POS (uart_handle_->hdmatx->Instance->CMAR - reinterpret_cast<uint32_t>(tx_buffer_))
 
 Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
   UartIrq::getInstance().registerUart(this);
@@ -33,6 +33,7 @@ Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
 Uart::~Uart() {}
 
 Status_t Uart::init() {
+  this_tx_start_ = 0;
   next_tx_start_ = 0;
   next_tx_end_ = 0;
   tx_complete_ = true;
@@ -59,7 +60,7 @@ size_t Uart::poll() {
   }
   */
 
-  startTx();
+  // startTx();
 
   if (isRxBufferEmpty() == false) {
     send_data_msg_ = true;
@@ -97,30 +98,35 @@ bool Uart::isRxBufferEmpty() {
   return false;
 }
 
-size_t Uart::getFreeTxSpace() {
-  // From next_tx_end_ to current tx DMA ptr - 1
-
-  int32_t dma_tx_write_pos = DMA_TX_WRITE_POS;  // - 1;
+size_t Uart::getFreeTxSpace(size_t seq_num) {
+  // From next_tx_end_ to DMA_TX_READ_POS
+  int32_t dma_tx_write_pos = DMA_TX_READ_POS;
   int32_t next_tx_end = next_tx_end_;
   int32_t free_tx_space = sizeof(tx_buffer_);
 
-  if (dma_tx_write_pos != next_tx_end) {
-    free_tx_space += dma_tx_write_pos - next_tx_end;
+  if (tx_complete_ == false) {
+    if (dma_tx_write_pos != next_tx_end) {
+      free_tx_space += dma_tx_write_pos - next_tx_end;
 
-    if (dma_tx_write_pos > next_tx_end) {
-      free_tx_space -= sizeof(tx_buffer_);
+      if (dma_tx_write_pos > next_tx_end) {
+        free_tx_space -= sizeof(tx_buffer_);
+      }
     }
+
+  } else {
+    dma_tx_write_pos = -1;
   }
 
-  DEBUG_INFO("Free tx space: %d bytes", free_tx_space)
+  DEBUG_INFO("[start: %d, dma: %d, end: %d]", this_tx_start_, dma_tx_write_pos, next_tx_start_)
+  DEBUG_INFO("Free tx space: %d (seq: %d)", free_tx_space, seq_num)
   return free_tx_space;
 }
 
 Status_t Uart::scheduleTx(const uint8_t* data, size_t size, size_t seq_num) {
   Status_t status;
 
-  if (getFreeTxSpace() >= size) {
-    DEBUG_INFO("Schedule tx: %d bytes", size)
+  if (getFreeTxSpace(seq_num) >= size) {
+    DEBUG_INFO("Schedule tx (size: %d, seq: %d)", size, seq_num)
 
     size_t new_tx_end;
     size_t tx_size = size;
@@ -131,8 +137,13 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t size, size_t seq_num) {
     }
 
     std::memcpy(tx_buffer_ + next_tx_end_, data, tx_size);
-    new_tx_end = next_tx_end_ + tx_size;
     size -= tx_size;
+
+    if (tx_size < size_to_buf_end) {
+      new_tx_end = next_tx_end_ + tx_size;
+    } else {
+      new_tx_end = 0;
+    }
 
     if (size > 0) {
       std::memcpy(tx_buffer_, data, size);
@@ -143,7 +154,7 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t size, size_t seq_num) {
     tx_complete_ = false;
     tx_overflow_ = false;
 
-    // startTx();
+    startTx();
 
     // Trigger uart task for fast transmit start
     os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
@@ -151,7 +162,7 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t size, size_t seq_num) {
     status = Status_t::Ok;
 
   } else {
-    DEBUG_ERROR("Tx buffer overflow!");
+    DEBUG_ERROR("Tx overflow (size: %d, seq: %d)", size, seq_num);
     tx_overflow_ = true;
     send_status_msg_ = true;
     status = Status_t::Error;
@@ -188,16 +199,16 @@ Status_t Uart::startTx() {
     }
 
     // Start transmit
-    DEBUG_INFO("Start tx: %d bytes", tx_size);
-
     tx_status = HAL_UART_Transmit_DMA(uart_handle_, tx_buffer_ + next_tx_start_, tx_size);
     if (tx_status == HAL_OK) {
+      this_tx_start_ = next_tx_start_;
       next_tx_start_ = new_tx_start;
-      DEBUG_INFO("Start tx [ok]")
+      DEBUG_INFO("Start tx (size: %d) [ok]", tx_size);
+      DEBUG_INFO("[start: %d, dma: %d, end: %d]", this_tx_start_, DMA_TX_READ_POS, next_tx_start_)
       status = Status_t::Ok;
 
     } else {
-      DEBUG_INFO("Start tx [failed]")
+      DEBUG_ERROR("Start tx (size: %d) [failed]", tx_size);
       status = Status_t::Error;
     }
 
@@ -215,6 +226,7 @@ void Uart::txCpltCallback() {
     startTx();
 
   } else {
+    this_tx_start_ = 0;
     next_tx_start_ = 0;
     next_tx_end_ = 0;
     tx_complete_ = true;
@@ -272,7 +284,7 @@ size_t Uart::serviceRx(uint8_t* data, size_t max_size) {
 void Uart::serviceStatus(UartStatus* status) {
   status->tx_complete = tx_complete_;
   status->tx_overflow = tx_overflow_;
-  status->tx_space = getFreeTxSpace();
+  status->tx_space = getFreeTxSpace(seqence_number_);
 
   status->rx_overflow = rx_overflow_;
   status->rx_space = 0;  // uart_handle_->RxXferCount;

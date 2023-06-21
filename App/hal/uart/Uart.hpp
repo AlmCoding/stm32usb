@@ -48,7 +48,7 @@ class Uart {
   Status_t startRx();
   bool isRxBufferEmpty();
 
-  size_t getFreeTxSpace();
+  size_t getFreeTxSpace(size_t seq_num);
   Status_t startTx();
   void txCpltCallback();
 
@@ -56,6 +56,7 @@ class Uart {
   uint8_t rx_buffer_[RxBufferSize];
   uint8_t tx_buffer_[TxBufferSize];
 
+  size_t this_tx_start_ = 0;
   size_t next_tx_start_ = 0;
   size_t next_tx_end_ = 0;
   bool tx_complete_ = true;
