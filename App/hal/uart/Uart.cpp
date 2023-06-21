@@ -203,6 +203,7 @@ Status_t Uart::startTx() {
     if (tx_status == HAL_OK) {
       this_tx_start_ = next_tx_start_;
       next_tx_start_ = new_tx_start;
+
       DEBUG_INFO("Start tx (size: %d) [ok]", tx_size);
       DEBUG_INFO("[start: %d, dma: %d, end: %d]", this_tx_start_, DMA_TX_READ_POS, next_tx_start_)
       status = Status_t::Ok;
@@ -221,6 +222,8 @@ Status_t Uart::startTx() {
 }
 
 void Uart::txCpltCallback() {
+  DEBUG_INFO("Tx cplt");
+
   // Check for new data
   if (next_tx_end_ != next_tx_start_) {
     startTx();

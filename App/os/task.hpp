@@ -16,8 +16,8 @@ namespace os {
 constexpr TickType_t CycleTime_CtrlTask = 1;
 constexpr TickType_t CycleTime_UartTask = 1;
 
-constexpr size_t StackSize_CtrlTask = 2048;
-constexpr size_t StackSize_UartTask = 1024;
+constexpr size_t StackSize_CtrlTask = 4096;
+constexpr size_t StackSize_UartTask = 2048;
 
 constexpr osPriority_t Priority_CtrlTask = osPriorityNormal;
 constexpr osPriority_t Priority_UartTask = osPriorityNormal;

@@ -1,7 +1,19 @@
 extern "C" {
 
+#include "srv/debug.hpp"
 #include "tf/TinyFrame.h"
 #include "usbd_cdc_if.h"
+
+#define DEBUG_ENABLE_MAIN
+#ifdef DEBUG_ENABLE_MAIN
+#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][main]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][main]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][main]: " f "\n", ##__VA_ARGS__);
+#else
+#define DEBUG_INFO(...)
+#define DEBUG_WARN(...)
+#define DEBUG_ERROR(...)
+#endif
 
 /**
  * This is an example of integrating TinyFrame into the application.
@@ -15,6 +27,7 @@ extern "C" {
 
 void TF_WriteImpl(TinyFrame* /*tf*/, const uint8_t* buff, uint32_t len) {
   while (CDC_IsTransmit_Busy() == 1) {
+    DEBUG_INFO("USB tx busy...");
   }
   CDC_Transmit_FS(const_cast<uint8_t*>(buff), static_cast<uint16_t>(len));
 }

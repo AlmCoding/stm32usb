@@ -32,6 +32,7 @@ int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size);
 
 static app::uart_srv::UartService uart_service_{};
 static int32_t pending_requests_ = 0;
+static size_t msg_count_ = 0;
 
 void uartTask(void* /*argument*/) {
   constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::UartMsg;
@@ -60,8 +61,15 @@ void uartTask(void* /*argument*/) {
         .type = TaskUsbMsgType,
         .cnt = service_requests,
       };
-      os::msg::send_msg(os::msg::MsgQueue::CtrlTaskQueue, &req_msg);
-      pending_requests_ = service_requests;
+
+      if (os::msg::send_msg(os::msg::MsgQueue::CtrlTaskQueue, &req_msg) == true) {
+        pending_requests_ = service_requests;
+        msg_count_++;
+        DEBUG_ERROR("Send msg: %d [ok]", msg_count_)
+
+      } else {
+        DEBUG_ERROR("Send msg: %d [failed]", msg_count_)
+      }
     }
   }
 }
@@ -72,7 +80,12 @@ int32_t uartTask_postRequest(const uint8_t* data, size_t size) {
 
 int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size) {
   int32_t size = uart_service_.serviceRequest(data, max_size);
-  pending_requests_--;
+
+  if (pending_requests_ > 0) {
+    pending_requests_--;
+  }
+
+  DEBUG_INFO("Pending requests: %d", pending_requests_)
   return size;
 }
 
