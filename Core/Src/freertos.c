@@ -32,6 +32,7 @@
 typedef StaticTask_t osStaticThreadDef_t;
 typedef StaticQueue_t osStaticMessageQDef_t;
 typedef StaticTimer_t osStaticTimerDef_t;
+typedef StaticSemaphore_t osStaticMutexDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -101,6 +102,14 @@ const osTimerAttr_t oneShotTimer_attributes = {
   .cb_mem = &oneShotTimerControlBlock,
   .cb_size = sizeof(oneShotTimerControlBlock),
 };
+/* Definitions for ServiceUartMutex */
+osMutexId_t ServiceUartMutexHandle;
+osStaticMutexDef_t ServiceUartMutexControlBlock;
+const osMutexAttr_t ServiceUartMutex_attributes = {
+  .name = "ServiceUartMutex",
+  .cb_mem = &ServiceUartMutexControlBlock,
+  .cb_size = sizeof(ServiceUartMutexControlBlock),
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -167,6 +176,9 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
+  /* Create the mutex(es) */
+  /* creation of ServiceUartMutex */
+  ServiceUartMutexHandle = osMutexNew(&ServiceUartMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */

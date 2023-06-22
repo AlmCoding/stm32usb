@@ -156,10 +156,12 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t size, size_t seq_num) {
 
     startTx();
 
+    /*
     // Trigger uart task for fast transmit start
     os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
     os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
     status = Status_t::Ok;
+    */
 
   } else {
     DEBUG_ERROR("Tx overflow (size: %d, seq: %d)", size, seq_num);

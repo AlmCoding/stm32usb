@@ -11,6 +11,7 @@
 #include "cmsis_os.h"
 #include "driver/tf/FrameDriver.hpp"
 #include "os/msg/msg_broker.hpp"
+#include "os/mutex.hpp"
 #include "os/task.hpp"
 #include "srv/debug.hpp"
 
@@ -31,7 +32,7 @@ int32_t uartTask_postRequest(const uint8_t* data, size_t size);
 int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size);
 
 static app::uart_srv::UartService uart_service_{};
-static int32_t pending_requests_ = 0;
+static bool ongoing_service_ = false;
 static size_t msg_count_ = 0;
 
 void uartTask(void* /*argument*/) {
@@ -52,24 +53,30 @@ void uartTask(void* /*argument*/) {
       // process msg
     }
 
-    int32_t service_requests = uart_service_.poll();
-    if ((service_requests > 0) && (pending_requests_ == 0)) {
-      DEBUG_INFO("Request service from ctrlTask.")
-      // Inform CtrlTask to service received data
-      os::msg::BaseMsg req_msg = {
-        .id = os::msg::MsgId::ServiceTxRequest,
-        .type = TaskUsbMsgType,
-        .cnt = service_requests,
-      };
+    if (osMutexAcquire(os::ServiceUartMutexHandle, Ticks100ms) == osOK) {
+      int32_t service_requests = uart_service_.poll();
+      if ((service_requests > 0) && (ongoing_service_ == false)) {
+        DEBUG_INFO("Request service from ctrlTask.")
+        // Inform CtrlTask to service received data
+        os::msg::BaseMsg req_msg = {
+          .id = os::msg::MsgId::ServiceTxRequest,
+          .type = TaskUsbMsgType,
+          .cnt = service_requests,
+        };
 
-      if (os::msg::send_msg(os::msg::MsgQueue::CtrlTaskQueue, &req_msg) == true) {
-        pending_requests_ = service_requests;
-        msg_count_++;
-        DEBUG_ERROR("Send msg: %d [ok]", msg_count_)
+        if (os::msg::send_msg(os::msg::MsgQueue::CtrlTaskQueue, &req_msg) == true) {
+          ongoing_service_ = true;
+          DEBUG_INFO("Send msg: %d [ok]", ++msg_count_)
 
-      } else {
-        DEBUG_ERROR("Send msg: %d [failed]", msg_count_)
+        } else {
+          DEBUG_ERROR("Send msg: %d [failed]", ++msg_count_)
+        }
+
+      } else if (service_requests > 0) {
+        DEBUG_WARN("Wait for request completion ...")
       }
+
+      osMutexRelease(os::ServiceUartMutexHandle);
     }
   }
 }
@@ -79,13 +86,15 @@ int32_t uartTask_postRequest(const uint8_t* data, size_t size) {
 }
 
 int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size) {
-  int32_t size = uart_service_.serviceRequest(data, max_size);
+  int32_t size = -1;
 
-  if (pending_requests_ > 0) {
-    pending_requests_--;
+  if (osMutexAcquire(os::ServiceUartMutexHandle, Ticks100ms) == osOK) {
+    size = uart_service_.serviceRequest(data, max_size);
+    ongoing_service_ = false;
+    DEBUG_INFO("Service request: %d", msg_count_)
+    osMutexRelease(os::ServiceUartMutexHandle);
   }
 
-  DEBUG_INFO("Pending requests: %d", pending_requests_)
   return size;
 }
 

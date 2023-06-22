@@ -46,8 +46,7 @@ void ctrlTask(void* /*argument*/) {
 
 void processMsg(os::msg::BaseMsg* msg) {
   srv::Stopwatch stopwatch{};
-  msg_count_++;
-  DEBUG_ERROR("Msg received: %d", msg_count_)
+  DEBUG_INFO("Msg received: %d", ++msg_count_)
 
   switch (msg->id) {
     case os::msg::MsgId::ServiceTxRequest: {

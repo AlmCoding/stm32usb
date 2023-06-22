@@ -10,8 +10,7 @@
 
 #include "app/usb/usbComTypes.hpp"
 
-namespace os {
-namespace msg {
+namespace os::msg {
 
 enum class MsgQueue {
   UsbTaskQueue = 0,
@@ -32,7 +31,6 @@ typedef struct {
   RequestCnt cnt;
 } BaseMsg;
 
-}  // namespace msg
-}  // namespace os
+}  // namespace os::msg
 
 #endif /* OS_MSG_MSG_DEF_HPP_ */

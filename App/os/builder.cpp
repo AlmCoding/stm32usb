@@ -8,6 +8,7 @@
 #include "os/builder.hpp"
 
 #include "cmsis_os.h"
+#include "os/mutex.hpp"
 #include "os/queue.hpp"
 #include "os/task.hpp"
 #include "os/timer.hpp"
@@ -30,6 +31,7 @@ void buildOs() {
   osKernelInitialize();
   DEBUG_INFO("Init Kernel [OK]");
 
+  createMutexes();
   createTimers();
   createQueues();
   createTasks();

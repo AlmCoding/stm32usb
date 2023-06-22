@@ -21,6 +21,7 @@ typedef int32_t MicroSeconds;
 constexpr TickNum_t Ticks1ms = 1;
 constexpr TickNum_t Ticks5ms = 5 * Ticks1ms;
 constexpr TickNum_t Ticks10ms = 10 * Ticks1ms;
+constexpr TickNum_t Ticks100ms = 100 * Ticks1ms;
 
 enum class Status_t {
   Error = -1,
