@@ -49,8 +49,8 @@ Status_t Uart::init() {
   return startRx();
 }
 
-size_t Uart::poll() {
-  size_t service_requests = 0;
+uint32_t Uart::poll() {
+  uint32_t service_requests = 0;
 
   /*
   // Recover from error
@@ -100,16 +100,16 @@ bool Uart::isRxBufferEmpty() {
   return false;
 }
 
-size_t Uart::getFreeTxSpace(size_t seq_num) {
+size_t Uart::getFreeTxSpace(uint32_t seq_num) {
   /* From next_tx_end_ to DMA_TX_READ_POS - 1
    * The -1 is needed because [next_tx_start_, next_tx_end_[
    * would mean that next_tx_end_ == next_tx_start
    * when tying to send sizeof(tx_buffer) bytes.
    */
 
-  int32_t free_tx_space = sizeof(tx_buffer_) - 1;
-  int32_t next_tx_end = next_tx_end_;
-  int32_t dma_tx_read_pos;
+  size_t free_tx_space = sizeof(tx_buffer_) - 1;
+  size_t next_tx_end = next_tx_end_;
+  size_t dma_tx_read_pos;
 
   if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_BUSY_TX) == true) {
     dma_tx_read_pos = DMA_TX_READ_POS;
@@ -130,37 +130,38 @@ size_t Uart::getFreeTxSpace(size_t seq_num) {
   return free_tx_space;
 }
 
-Status_t Uart::scheduleTx(const uint8_t* data, size_t size, size_t seq_num) {
+Status_t Uart::scheduleTx(const uint8_t* data, size_t len, uint32_t seq_num) {
   Status_t status;
 
-  if (getFreeTxSpace(seq_num) >= size) {
-    DEBUG_INFO("Schedule tx (size: %d, seq: %d)", size, seq_num)
+  if (getFreeTxSpace(seq_num) >= len) {
+    DEBUG_INFO("Sched. tx (len: %d, seq: %d)", len, seq_num)
 
     size_t new_tx_end;
-    size_t tx_size = size;
-    size_t size_to_buf_end = sizeof(tx_buffer_) - next_tx_end_;
+    size_t tx_len = len;
+    size_t len_to_buf_end = sizeof(tx_buffer_) - next_tx_end_;
 
-    if (size > size_to_buf_end) {
-      tx_size = size_to_buf_end;
+    if (len > len_to_buf_end) {
+      tx_len = len_to_buf_end;
     }
 
-    std::memcpy(tx_buffer_ + next_tx_end_, data, tx_size);
-    size -= tx_size;
+    std::memcpy(tx_buffer_ + next_tx_end_, data, tx_len);
+    len -= tx_len;
 
-    if (tx_size < size_to_buf_end) {
-      new_tx_end = next_tx_end_ + tx_size;
+    if (tx_len < len_to_buf_end) {
+      new_tx_end = next_tx_end_ + tx_len;
     } else {
       new_tx_end = 0;
     }
 
-    if (size > 0) {
-      std::memcpy(tx_buffer_, data, size);
-      new_tx_end = size;
+    if (len > 0) {
+      std::memcpy(tx_buffer_, data, len);
+      new_tx_end = len;
     }
 
     next_tx_end_ = new_tx_end;
     tx_complete_ = false;
     tx_overflow_ = false;
+    status = Status_t::Ok;
 
 #if (START_TX_IMMEDIATELY == true)
     startTx();
@@ -168,11 +169,10 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t size, size_t seq_num) {
     // Trigger uart task for fast transmit start
     os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
     os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
-    status = Status_t::Ok;
 #endif
 
   } else {
-    DEBUG_ERROR("Tx overflow (size: %d, seq: %d)", size, seq_num);
+    DEBUG_ERROR("Tx overflow (len: %d, seq: %d)", len, seq_num);
     tx_overflow_ = true;
     send_status_msg_ = true;
     status = Status_t::Error;
@@ -193,33 +193,33 @@ Status_t Uart::startTx() {
 
   // Check for new data
   if (next_tx_end_ != next_tx_start_) {
-    uint16_t tx_size;
+    size_t tx_len;
     size_t new_tx_start;
 
     // Protect against change due to new scheduleTx (interrupt context)
     size_t next_tx_end = next_tx_end_;
 
     if (next_tx_start_ < next_tx_end) {
-      tx_size = static_cast<uint16_t>(next_tx_end - next_tx_start_);
+      tx_len = next_tx_end - next_tx_start_;
       new_tx_start = next_tx_end;
 
     } else {
-      tx_size = static_cast<uint16_t>(sizeof(tx_buffer_) - next_tx_start_);
+      tx_len = sizeof(tx_buffer_) - next_tx_start_;
       new_tx_start = 0;
     }
 
     // Start transmit
-    tx_status = HAL_UART_Transmit_DMA(uart_handle_, tx_buffer_ + next_tx_start_, tx_size);
+    tx_status = HAL_UART_Transmit_DMA(uart_handle_, tx_buffer_ + next_tx_start_, static_cast<uint16_t>(tx_len));
     if (tx_status == HAL_OK) {
       this_tx_start_ = next_tx_start_;
       next_tx_start_ = new_tx_start;
 
-      DEBUG_INFO("Start tx (size: %d) [ok]", tx_size);
+      DEBUG_INFO("Start tx (len: %d) [ok]", tx_len);
       DEBUG_INFO("Tx=[%d, dma: %d, %d[", this_tx_start_, DMA_TX_READ_POS, next_tx_start_)
       status = Status_t::Ok;
 
     } else {
-      DEBUG_ERROR("Start tx (size: %d) [failed]", tx_size);
+      DEBUG_ERROR("Start tx (len: %d) [failed]", tx_len);
       status = Status_t::Error;
     }
 
@@ -249,7 +249,7 @@ void Uart::txCpltCallback() {
   send_status_msg_ = true;
 }
 
-size_t Uart::getServiceRequest(ServiceRequest* req) {
+uint32_t Uart::getServiceRequest(ServiceRequest* req) {
   *req = ServiceRequest::None;
 
   if (send_data_msg_ == true) {
@@ -263,7 +263,7 @@ size_t Uart::getServiceRequest(ServiceRequest* req) {
   return seqence_number_;
 }
 
-size_t Uart::serviceRx(uint8_t* data, size_t max_size) {
+size_t Uart::serviceRx(uint8_t* data, size_t max_len) {
   int32_t rx_cnt;
   bool rx_circulation = false;
   size_t rx_write_pos = DMA_RX_WRITE_POS;
@@ -274,15 +274,15 @@ size_t Uart::serviceRx(uint8_t* data, size_t max_size) {
     rx_circulation = true;
   }
 
-  if (rx_cnt > static_cast<int32_t>(max_size)) {
-    rx_cnt = max_size;
+  if (rx_cnt > static_cast<int32_t>(max_len)) {
+    rx_cnt = max_len;
   }
 
   std::memcpy(data, rx_buffer_ + rx_read_pos_, rx_cnt);
 
   if (rx_circulation == true) {
-    if ((rx_write_pos + rx_cnt) > max_size) {
-      rx_write_pos = max_size - rx_cnt;
+    if ((rx_write_pos + rx_cnt) > max_len) {
+      rx_write_pos = max_len - rx_cnt;
     }
 
     if (rx_write_pos > 0) {

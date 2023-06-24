@@ -37,19 +37,19 @@ class Uart {
   virtual ~Uart();
 
   Status_t init();
-  size_t poll();
+  uint32_t poll();
 
-  Status_t scheduleTx(const uint8_t* data, size_t size, size_t seq_num);
+  Status_t scheduleTx(const uint8_t* data, size_t len, uint32_t seq_num);
 
-  size_t getServiceRequest(ServiceRequest* req);
-  size_t serviceRx(uint8_t* data, size_t max_size);
+  uint32_t getServiceRequest(ServiceRequest* req);
+  size_t serviceRx(uint8_t* data, size_t max_len);
   void serviceStatus(UartStatus* status);
 
  private:
   Status_t startRx();
   bool isRxBufferEmpty();
 
-  size_t getFreeTxSpace(size_t seq_num);
+  size_t getFreeTxSpace(uint32_t seq_num);
   Status_t startTx();
   void txCpltCallback();
 
@@ -68,7 +68,7 @@ class Uart {
 
   bool send_data_msg_ = false;
   bool send_status_msg_ = false;
-  size_t seqence_number_ = 0;
+  uint32_t seqence_number_ = 0;
 
   friend class UartIrq;
 };

@@ -29,7 +29,7 @@
 
 namespace task::ctrl {
 
-static size_t msg_count_ = 0;
+static uint32_t msg_count_ = 0;
 
 void processMsg(os::msg::BaseMsg* msg);
 

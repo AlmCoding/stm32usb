@@ -23,7 +23,7 @@ enum class MsgId {
   ServiceTxRequest,
 };
 
-typedef int32_t RequestCnt;
+typedef uint32_t RequestCnt;
 
 typedef struct {
   MsgId id;

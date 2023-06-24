@@ -26,8 +26,7 @@
 #define DEBUG_ERROR(...)
 #endif
 
-namespace app {
-namespace uart_srv {
+namespace app::uart_srv {
 
 UartService::UartService() : uart1_{ &huart1 } {}
 
@@ -37,17 +36,17 @@ void UartService::init() {
   uart1_.init();
 }
 
-int32_t UartService::poll() {
+uint32_t UartService::poll() {
   return uart1_.poll();
 }
 
-int32_t UartService::postRequest(const uint8_t* data, size_t size) {
+int32_t UartService::postRequest(const uint8_t* data, size_t len) {
   int32_t status = -1;
 
   /* Allocate space for the decoded message. */
   uart_proto_UartMsg uart_msg = uart_proto_UartMsg_init_zero;
   /* Create a stream that reads from the buffer. */
-  pb_istream_t stream = pb_istream_from_buffer(data, size);
+  pb_istream_t stream = pb_istream_from_buffer(data, len);
 
   /* Now we are ready to decode the message. */
   if (pb_decode(&stream, uart_proto_UartMsg_fields, &uart_msg) == false) {
@@ -65,19 +64,19 @@ int32_t UartService::postRequest(const uint8_t* data, size_t size) {
   return status;
 }
 
-int32_t UartService::serviceRequest(uint8_t* data, size_t max_size) {
+int32_t UartService::serviceRequest(uint8_t* data, size_t max_len) {
   /* Allocate space for the decoded message. */
   uart_proto_UartMsg uart_msg = uart_proto_UartMsg_init_zero;
   /* Create a stream that will write to our buffer. */
-  pb_ostream_t stream = pb_ostream_from_buffer(data, max_size);
+  pb_ostream_t stream = pb_ostream_from_buffer(data, max_len);
 
   hal::uart::ServiceRequest req;
   uart_msg.sequence_number = uart1_.getServiceRequest(&req);
 
   if (req == hal::uart::ServiceRequest::SendRxData) {
-    serviceDataRequest(&uart_msg, max_size);
+    serviceDataRequest(&uart_msg, max_len);
   } else if (req == hal::uart::ServiceRequest::SendStatus) {
-    serviceStatusRequest(&uart_msg, max_size);
+    serviceStatusRequest(&uart_msg, max_len);
   }
 
   /* Now we are ready to encode the message! */
@@ -89,10 +88,10 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_size) {
   return stream.bytes_written;
 }
 
-void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_size) {
+void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_len) {
   msg->which_msg = uart_proto_UartMsg_data_msg_tag;
 
-  size_t data_size = uart1_.serviceRx(msg->msg.data_msg.data.bytes, max_size);
+  size_t data_size = uart1_.serviceRx(msg->msg.data_msg.data.bytes, max_len);
   msg->msg.data_msg.data.size = static_cast<uint16_t>(data_size);
   DEBUG_INFO("Service %d bytes", data_size);
 }
@@ -112,5 +111,4 @@ void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_siz
   DEBUG_INFO("Service status info (seq: %d)", msg->sequence_number);
 }
 
-} /* namespace uart_srv */
-} /* namespace app */
+}  // namespace app::uart_srv

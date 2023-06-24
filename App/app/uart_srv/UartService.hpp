@@ -11,8 +11,7 @@
 #include "hal/uart/Uart.hpp"
 #include "proto_c/uart.pb.h"
 
-namespace app {
-namespace uart_srv {
+namespace app::uart_srv {
 
 class UartService {
  public:
@@ -20,18 +19,17 @@ class UartService {
   virtual ~UartService();
   void init();
 
-  int32_t poll();
-  int32_t postRequest(const uint8_t* data, size_t size);
-  int32_t serviceRequest(uint8_t* data, size_t max_size);
+  uint32_t poll();
+  int32_t postRequest(const uint8_t* data, size_t len);
+  int32_t serviceRequest(uint8_t* data, size_t max_len);
 
  private:
-  void serviceDataRequest(uart_proto_UartMsg* msg, size_t max_size);
-  void serviceStatusRequest(uart_proto_UartMsg* msg, size_t max_size);
+  void serviceDataRequest(uart_proto_UartMsg* msg, size_t max_len);
+  void serviceStatusRequest(uart_proto_UartMsg* msg, size_t max_len);
 
   hal::uart::Uart uart1_;
 };
 
-} /* namespace uart_srv */
-} /* namespace app */
+}  // namespace app::uart_srv
 
 #endif /* APP_UART_SRV_UARTSERVICE_HPP_ */

@@ -59,20 +59,20 @@ Status_t FrameDriver::registerRxCallback(app::usb::UsbMsgType type, app::usb::Rx
   return status;
 }
 
-void FrameDriver::callRxCallback(app::usb::UsbMsgType type, const uint8_t* data, size_t size) {
-  rx_callbacks_[static_cast<uint8_t>(type)](data, size);
+void FrameDriver::callRxCallback(app::usb::UsbMsgType type, const uint8_t* data, size_t len) {
+  rx_callbacks_[static_cast<uint8_t>(type)](data, len);
 }
 
-void FrameDriver::receiveData(const uint8_t* data, size_t size) {
-  TF_Accept(&tf_, data, size);
+void FrameDriver::receiveData(const uint8_t* data, size_t len) {
+  TF_Accept(&tf_, data, len);
 }
 
-void FrameDriver_receiveData(const uint8_t* data, size_t size) {
+void FrameDriver_receiveData(const uint8_t* data, size_t len) {
   srv::Stopwatch stopwatch{};
   stopwatch.start();
 
   driver::tf::FrameDriver& frameDriver = driver::tf::FrameDriver::getInstance();
-  frameDriver.receiveData(data, size);
+  frameDriver.receiveData(data, len);
 
   stopwatch.stop();
   DEBUG_INFO("USB rx: %d us", stopwatch.time());

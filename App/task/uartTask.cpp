@@ -33,7 +33,7 @@ int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size);
 
 static app::uart_srv::UartService uart_service_{};
 static bool ongoing_service_ = false;
-static size_t msg_count_ = 0;
+static uint32_t msg_count_ = 0;
 
 void uartTask(void* /*argument*/) {
   constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::UartMsg;
@@ -54,9 +54,9 @@ void uartTask(void* /*argument*/) {
     }
 
     if (osMutexAcquire(os::ServiceUartMutexHandle, Ticks100ms) == osOK) {
-      int32_t service_requests = uart_service_.poll();
+      uint32_t service_requests = uart_service_.poll();
       if ((service_requests > 0) && (ongoing_service_ == false)) {
-        DEBUG_INFO("Request service from ctrlTask")
+        DEBUG_INFO("Request srv from ctrlTask")
         // Inform CtrlTask to service received data
         os::msg::BaseMsg req_msg = {
           .id = os::msg::MsgId::ServiceTxRequest,
@@ -73,7 +73,7 @@ void uartTask(void* /*argument*/) {
         }
 
       } else if (service_requests > 0) {
-        DEBUG_WARN("Wait service cplt ...")
+        DEBUG_WARN("Wait srv cplt ...")
       }
 
       osMutexRelease(os::ServiceUartMutexHandle);
@@ -81,22 +81,22 @@ void uartTask(void* /*argument*/) {
   }
 }
 
-int32_t uartTask_postRequest(const uint8_t* data, size_t size) {
-  return uart_service_.postRequest(data, size);
+int32_t uartTask_postRequest(const uint8_t* data, size_t len) {
+  return uart_service_.postRequest(data, len);
 }
 
-int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size) {
-  int32_t size = -1;
+int32_t uartTask_serviceRequest(uint8_t* data, size_t max_len) {
+  int32_t len = -1;
 
   if (osMutexAcquire(os::ServiceUartMutexHandle, Ticks100ms) == osOK) {
-    size = uart_service_.serviceRequest(data, max_size);
+    len = uart_service_.serviceRequest(data, max_len);
     ongoing_service_ = false;
 
     DEBUG_INFO("Service request: %d", msg_count_)
     osMutexRelease(os::ServiceUartMutexHandle);
   }
 
-  return size;
+  return len;
 }
 
 }  // namespace task::uart
