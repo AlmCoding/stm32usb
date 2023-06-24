@@ -24,3 +24,11 @@ The first palyload byte specifies the format of the following bytes:
 
 The payload is forated in json
 
+
+# Uart concept
+
+
+## RX Part
+DMA is writing incomming bytes in ring buffer
+- cyclic check of how many bytes are in buffer
+- RX complete interrupt shall trigger task for cyclic check (later)
