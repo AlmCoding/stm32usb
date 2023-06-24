@@ -56,7 +56,7 @@ void uartTask(void* /*argument*/) {
     if (osMutexAcquire(os::ServiceUartMutexHandle, Ticks100ms) == osOK) {
       int32_t service_requests = uart_service_.poll();
       if ((service_requests > 0) && (ongoing_service_ == false)) {
-        DEBUG_INFO("Request service from ctrlTask.")
+        DEBUG_INFO("Request service from ctrlTask")
         // Inform CtrlTask to service received data
         os::msg::BaseMsg req_msg = {
           .id = os::msg::MsgId::ServiceTxRequest,
@@ -73,7 +73,7 @@ void uartTask(void* /*argument*/) {
         }
 
       } else if (service_requests > 0) {
-        DEBUG_WARN("Wait for request completion ...")
+        DEBUG_WARN("Wait service cplt ...")
       }
 
       osMutexRelease(os::ServiceUartMutexHandle);
@@ -91,6 +91,7 @@ int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size) {
   if (osMutexAcquire(os::ServiceUartMutexHandle, Ticks100ms) == osOK) {
     size = uart_service_.serviceRequest(data, max_size);
     ongoing_service_ = false;
+
     DEBUG_INFO("Service request: %d", msg_count_)
     osMutexRelease(os::ServiceUartMutexHandle);
   }

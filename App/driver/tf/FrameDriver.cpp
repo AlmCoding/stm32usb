@@ -79,7 +79,7 @@ void FrameDriver_receiveData(const uint8_t* data, size_t size) {
 }
 
 TF_Result typeCallback(TinyFrame* /*tf*/, TF_Msg* msg) {
-  DEBUG_INFO("=>O msg: type: %d, len: %d", msg->type, msg->len);
+  DEBUG_INFO("=>I msg: type: %d, len: %d", msg->type, msg->len);
 
   driver::tf::FrameDriver& frameDriver = driver::tf::FrameDriver::getInstance();
   frameDriver.callRxCallback(static_cast<app::usb::UsbMsgType>(msg->type), msg->data, msg->len);

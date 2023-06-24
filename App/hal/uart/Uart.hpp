@@ -13,8 +13,9 @@
 
 namespace hal::uart {
 
+#define START_TX_IMMEDIATELY false
 constexpr size_t RxBufferSize = 256;
-constexpr size_t TxBufferSize = 256;
+constexpr size_t TxBufferSize = 256 + 1;
 
 enum class ServiceRequest {
   None = 0,

@@ -60,7 +60,9 @@ size_t Uart::poll() {
   }
   */
 
-  // startTx();
+#if (START_TX_IMMEDIATELY == false)
+  startTx();
+#endif
 
   if (isRxBufferEmpty() == false) {
     send_data_msg_ = true;
@@ -99,25 +101,31 @@ bool Uart::isRxBufferEmpty() {
 }
 
 size_t Uart::getFreeTxSpace(size_t seq_num) {
-  // From next_tx_end_ to DMA_TX_READ_POS
-  int32_t dma_tx_write_pos = DMA_TX_READ_POS;
+  /* From next_tx_end_ to DMA_TX_READ_POS - 1
+   * The -1 is needed because [next_tx_start_, next_tx_end_[
+   * would mean that next_tx_end_ == next_tx_start
+   * when tying to send sizeof(tx_buffer) bytes.
+   */
+
+  int32_t free_tx_space = sizeof(tx_buffer_) - 1;
   int32_t next_tx_end = next_tx_end_;
-  int32_t free_tx_space = sizeof(tx_buffer_);
+  int32_t dma_tx_read_pos;
 
-  if (tx_complete_ == false) {
-    if (dma_tx_write_pos != next_tx_end) {
-      free_tx_space += dma_tx_write_pos - next_tx_end;
-
-      if (dma_tx_write_pos > next_tx_end) {
-        free_tx_space -= sizeof(tx_buffer_);
-      }
-    }
-
+  if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_BUSY_TX) == true) {
+    dma_tx_read_pos = DMA_TX_READ_POS;
   } else {
-    dma_tx_write_pos = -1;
+    dma_tx_read_pos = next_tx_start_;
   }
 
-  DEBUG_INFO("[start: %d, dma: %d, end: %d]", this_tx_start_, dma_tx_write_pos, next_tx_start_)
+  if (dma_tx_read_pos != next_tx_end) {
+    free_tx_space += dma_tx_read_pos - next_tx_end;
+
+    if (dma_tx_read_pos > next_tx_end) {
+      free_tx_space -= sizeof(tx_buffer_);
+    }
+  }
+
+  DEBUG_INFO("[%d, dma: %d, [%d, %d[", this_tx_start_, dma_tx_read_pos, next_tx_start_, next_tx_end)
   DEBUG_INFO("Free tx space: %d (seq: %d)", free_tx_space, seq_num)
   return free_tx_space;
 }
@@ -154,14 +162,14 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t size, size_t seq_num) {
     tx_complete_ = false;
     tx_overflow_ = false;
 
+#if (START_TX_IMMEDIATELY == true)
     startTx();
-
-    /*
+#else
     // Trigger uart task for fast transmit start
     os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
     os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
     status = Status_t::Ok;
-    */
+#endif
 
   } else {
     DEBUG_ERROR("Tx overflow (size: %d, seq: %d)", size, seq_num);
@@ -207,7 +215,7 @@ Status_t Uart::startTx() {
       next_tx_start_ = new_tx_start;
 
       DEBUG_INFO("Start tx (size: %d) [ok]", tx_size);
-      DEBUG_INFO("[start: %d, dma: %d, end: %d]", this_tx_start_, DMA_TX_READ_POS, next_tx_start_)
+      DEBUG_INFO("Tx=[%d, dma: %d, %d[", this_tx_start_, DMA_TX_READ_POS, next_tx_start_)
       status = Status_t::Ok;
 
     } else {
@@ -225,6 +233,7 @@ Status_t Uart::startTx() {
 
 void Uart::txCpltCallback() {
   DEBUG_INFO("Tx cplt");
+  DEBUG_INFO("Cplt=[%d, dma: %d, [%d, %d[", this_tx_start_, DMA_TX_READ_POS, next_tx_start_, next_tx_end_)
 
   // Check for new data
   if (next_tx_end_ != next_tx_start_) {
