@@ -1,5 +1,6 @@
 extern "C" {
 
+#include "srv/Timeout.hpp"
 #include "srv/debug.hpp"
 #include "tf/TinyFrame.h"
 #include "usbd_cdc_if.h"
@@ -26,9 +27,20 @@ extern "C" {
  */
 
 void TF_WriteImpl(TinyFrame* /*tf*/, const uint8_t* buff, uint32_t len) {
+  srv::Timeout timeout{ Time3ms };
+  bool notified = false;
+
   while (CDC_IsTransmit_Busy() == 1) {
-    DEBUG_INFO("USB tx busy...");
+    if (timeout.isExpired() == true) {
+      DEBUG_ERROR("USB tx timeout expired!");
+      break;
+
+    } else if (notified == false) {
+      DEBUG_INFO("USB tx busy...");
+      notified = true;
+    }
   }
+
   CDC_Transmit_FS(const_cast<uint8_t*>(buff), static_cast<uint16_t>(len));
 }
 

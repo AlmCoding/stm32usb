@@ -23,7 +23,7 @@
 
 namespace hal::uart {
 
-#define DMA_RX_WRITE_POS ((RxBufferSize - uart_handle_->hdmarx->Instance->CNDTR) & (RxBufferSize - 1))
+#define DMA_RX_WRITE_POS (sizeof(rx_buffer_) - uart_handle_->hdmarx->Instance->CNDTR)
 #define DMA_TX_READ_POS (uart_handle_->hdmatx->Instance->CMAR - reinterpret_cast<uint32_t>(tx_buffer_))
 
 Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
@@ -126,7 +126,7 @@ size_t Uart::getFreeTxSpace(uint32_t seq_num) {
   }
 
   DEBUG_INFO("[%d, dma: %d, [%d, %d[", this_tx_start_, dma_tx_read_pos, next_tx_start_, next_tx_end)
-  DEBUG_INFO("Free tx space: %d (seq: %d)", free_tx_space, seq_num)
+  DEBUG_INFO("Free tx space (len: %d, seq: %d)", free_tx_space, seq_num)
   return free_tx_space;
 }
 
@@ -232,7 +232,7 @@ Status_t Uart::startTx() {
 }
 
 void Uart::txCpltCallback() {
-  DEBUG_INFO("Tx cplt");
+  DEBUG_INFO("Tx cplt (seq: %d)", seqence_number_)
   DEBUG_INFO("Cplt=[%d, dma: %d, [%d, %d[", this_tx_start_, DMA_TX_READ_POS, next_tx_start_, next_tx_end_)
 
   // Check for new data
@@ -253,6 +253,7 @@ uint32_t Uart::getServiceRequest(ServiceRequest* req) {
   *req = ServiceRequest::None;
 
   if (send_data_msg_ == true) {
+    send_data_msg_ = false;
     *req = ServiceRequest::SendRxData;
 
   } else if (send_status_msg_ == true) {
@@ -266,9 +267,9 @@ uint32_t Uart::getServiceRequest(ServiceRequest* req) {
 size_t Uart::serviceRx(uint8_t* data, size_t max_len) {
   int32_t rx_cnt;
   bool rx_circulation = false;
-  size_t rx_write_pos = DMA_RX_WRITE_POS;
+  size_t dma_rx_write_pos = DMA_RX_WRITE_POS;
 
-  rx_cnt = rx_write_pos - rx_read_pos_;
+  rx_cnt = dma_rx_write_pos - rx_read_pos_;
   if (rx_cnt < 0) {
     rx_cnt = sizeof(rx_buffer_) - rx_read_pos_;
     rx_circulation = true;
@@ -281,17 +282,17 @@ size_t Uart::serviceRx(uint8_t* data, size_t max_len) {
   std::memcpy(data, rx_buffer_ + rx_read_pos_, rx_cnt);
 
   if (rx_circulation == true) {
-    if ((rx_write_pos + rx_cnt) > max_len) {
-      rx_write_pos = max_len - rx_cnt;
+    if ((dma_rx_write_pos + rx_cnt) > max_len) {
+      dma_rx_write_pos = max_len - rx_cnt;
     }
 
-    if (rx_write_pos > 0) {
-      std::memcpy(data + rx_cnt, rx_buffer_, rx_write_pos);
-      rx_cnt += rx_write_pos;
+    if (dma_rx_write_pos > 0) {
+      std::memcpy(data + rx_cnt, rx_buffer_, dma_rx_write_pos);
+      rx_cnt += dma_rx_write_pos;
     }
   }
 
-  rx_read_pos_ = rx_write_pos;
+  rx_read_pos_ = dma_rx_write_pos;
   return rx_cnt;
 }
 

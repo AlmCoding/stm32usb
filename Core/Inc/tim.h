@@ -29,7 +29,10 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#ifdef __cplusplus
+#include "common.hpp"
+constexpr MicroSeconds TimeBase = 1;
+#endif
 /* USER CODE END Includes */
 
 extern TIM_HandleTypeDef htim2;

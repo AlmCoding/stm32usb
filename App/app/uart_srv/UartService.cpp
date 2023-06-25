@@ -93,7 +93,8 @@ void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_len) {
 
   size_t data_size = uart1_.serviceRx(msg->msg.data_msg.data.bytes, max_len);
   msg->msg.data_msg.data.size = static_cast<uint16_t>(data_size);
-  DEBUG_INFO("Service %d bytes", data_size);
+
+  DEBUG_INFO("Srv data (len: %d, seq: %d)", data_size, msg->sequence_number);
 }
 
 void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_size*/) {
@@ -108,7 +109,7 @@ void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_siz
   msg->msg.status_msg.rx_space = status.rx_space;
   msg->msg.status_msg.tx_space = status.tx_space;
 
-  DEBUG_INFO("Service status info (seq: %d)", msg->sequence_number);
+  DEBUG_INFO("Srv status (seq: %d)", msg->sequence_number);
 }
 
 }  // namespace app::uart_srv

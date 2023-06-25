@@ -10,8 +10,6 @@
 
 namespace srv {
 
-constexpr MicroSeconds TimeBase = 1;
-
 Stopwatch::Stopwatch() {}
 
 Stopwatch::~Stopwatch() {}
@@ -24,9 +22,8 @@ void Stopwatch::start() {
 MicroSeconds Stopwatch::time() {
   if (running_ == true) {
     return (htim2.Instance->CNT - start_) * TimeBase;
-  } else {
-    return time_;
   }
+  return time_;
 }
 
 MicroSeconds Stopwatch::stop() {
