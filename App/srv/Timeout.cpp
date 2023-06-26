@@ -31,4 +31,8 @@ bool Timeout::isExpired() {
   return false;
 }
 
+MicroSeconds Timeout::remaining() {
+  return timeout_ - ((htim2.Instance->CNT - start_) * TimeBase);
+}
+
 } /* namespace srv */

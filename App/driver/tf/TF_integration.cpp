@@ -27,17 +27,18 @@ extern "C" {
  */
 
 void TF_WriteImpl(TinyFrame* /*tf*/, const uint8_t* buff, uint32_t len) {
-  srv::Timeout timeout{ Time3ms };
+  srv::Timeout timeout{};
   bool notified = false;
 
   while (CDC_IsTransmit_Busy() == 1) {
-    if (timeout.isExpired() == true) {
-      DEBUG_ERROR("USB tx timeout expired!");
-      break;
-
-    } else if (notified == false) {
-      DEBUG_INFO("USB tx busy...");
+    if (notified == false) {
+      timeout.start(Time10ms);
+      DEBUG_INFO("USB tx busy ...");
       notified = true;
+
+    } else if (timeout.isExpired() == true) {
+      DEBUG_ERROR("USB tx timeout expired! (%d)", timeout.remaining());
+      break;
     }
   }
 

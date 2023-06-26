@@ -22,6 +22,7 @@ constexpr MicroSeconds Time1ms = 1000;
 constexpr MicroSeconds Time3ms = 3 * Time1ms;
 constexpr MicroSeconds Time4ms = 5 * Time1ms;
 constexpr MicroSeconds Time10ms = 10 * Time1ms;
+constexpr MicroSeconds Time100ms = 100 * Time1ms;
 
 constexpr TickNum_t Ticks1ms = 1;
 constexpr TickNum_t Ticks3ms = 3 * Ticks1ms;

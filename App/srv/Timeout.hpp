@@ -20,6 +20,7 @@ class Timeout {
 
   void start(MicroSeconds timeout);
   bool isExpired();
+  MicroSeconds remaining();
 
  private:
   MicroSeconds timeout_;

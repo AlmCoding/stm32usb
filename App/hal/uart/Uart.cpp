@@ -104,7 +104,7 @@ size_t Uart::getFreeTxSpace(uint32_t seq_num) {
   /* From next_tx_end_ to DMA_TX_READ_POS - 1
    * The -1 is needed because [next_tx_start_, next_tx_end_[
    * would mean that next_tx_end_ == next_tx_start
-   * when tying to send sizeof(tx_buffer) bytes.
+   * when scheduled tx len == sizeof(tx_buffer).
    */
 
   size_t free_tx_space = sizeof(tx_buffer_) - 1;
@@ -154,7 +154,7 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t len, uint32_t seq_num) {
     }
 
     if (len > 0) {
-      std::memcpy(tx_buffer_, data, len);
+      std::memcpy(tx_buffer_, data + tx_len, len);
       new_tx_end = len;
     }
 
