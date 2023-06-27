@@ -21,10 +21,10 @@
 #define DEBUG_ERROR(...)
 #endif
 
-namespace hal::uart {
-
 #define DMA_RX_WRITE_POS (sizeof(rx_buffer_) - uart_handle_->hdmarx->Instance->CNDTR)
 #define DMA_TX_READ_POS (uart_handle_->hdmatx->Instance->CMAR - reinterpret_cast<uint32_t>(tx_buffer_))
+
+namespace hal::uart {
 
 Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
   UartIrq::getInstance().registerUart(this);
@@ -32,7 +32,37 @@ Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
 
 Uart::~Uart() {}
 
+Status_t Uart::config(uint32_t baudrate) {
+  Status_t status;
+  stopDma();
+
+  // Set new configuration
+  uart_handle_->Init.BaudRate = baudrate;
+
+  if (HAL_UART_Init(uart_handle_) == HAL_OK) {
+    DEBUG_INFO("Config [ok]")
+    status = Status_t::Ok;
+
+  } else {
+    DEBUG_ERROR("Config [failed]")
+    status = Status_t::Error;
+  }
+
+  if (init() == Status_t::Ok) {
+    DEBUG_ERROR("Init [ok]")
+
+  } else {
+    DEBUG_ERROR("Init [failed]")
+    status = Status_t::Error;
+  }
+
+  return status;
+}
+
 Status_t Uart::init() {
+  // TODO stop rx interrupts?
+  // ...
+
   this_tx_start_ = 0;
   next_tx_start_ = 0;
   next_tx_end_ = 0;
@@ -52,14 +82,6 @@ Status_t Uart::init() {
 uint32_t Uart::poll() {
   uint32_t service_requests = 0;
 
-  /*
-  // Recover from error
-  if (BITS_SET(uart_handle_->gState, HAL_UART_STATE_ERROR) == true) {
-    DEBUG_ERROR("Tx error, try to recover...")
-    HAL_UART_DMAStop(uart_handle_);
-  }
-  */
-
 #if (START_TX_IMMEDIATELY == false)
   startTx();
 #endif
@@ -74,6 +96,15 @@ uint32_t Uart::poll() {
   }
 
   return service_requests;
+}
+
+Status_t Uart::stopDma() {
+  if (HAL_UART_DMAStop(uart_handle_) == HAL_OK) {
+    DEBUG_INFO("Stop dma [ok]")
+    return Status_t::Ok;
+  }
+  DEBUG_ERROR("Stop dma [failed]")
+  return Status_t::Error;
 }
 
 Status_t Uart::startRx() {
@@ -249,6 +280,14 @@ void Uart::txCpltCallback() {
   send_status_msg_ = true;
 }
 
+void Uart::rxTimeoutCallback() {
+  DEBUG_INFO("Rx timeout (seq: %d)", seqence_number_)
+
+  // Trigger uart task for fast service notification
+  os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
+  os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
+}
+
 uint32_t Uart::getServiceRequest(ServiceRequest* req) {
   *req = ServiceRequest::None;
 
@@ -302,7 +341,7 @@ void Uart::serviceStatus(UartStatus* status) {
   status->tx_space = getFreeTxSpace(seqence_number_);
 
   status->rx_overflow = rx_overflow_;
-  status->rx_space = 0;  // uart_handle_->RxXferCount;
+  status->rx_space = 0;
 }
 
 } /* namespace hal::uart */

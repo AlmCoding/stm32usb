@@ -36,6 +36,7 @@ class Uart {
   Uart(UART_HandleTypeDef* uart_handle);
   virtual ~Uart();
 
+  Status_t config(uint32_t baudrate);
   Status_t init();
   uint32_t poll();
 
@@ -46,12 +47,14 @@ class Uart {
   void serviceStatus(UartStatus* status);
 
  private:
+  Status_t stopDma();
   Status_t startRx();
   bool isRxBufferEmpty();
 
   size_t getFreeTxSpace(uint32_t seq_num);
   Status_t startTx();
   void txCpltCallback();
+  void rxTimeoutCallback();
 
   UART_HandleTypeDef* uart_handle_;
   uint8_t rx_buffer_[RxBufferSize];

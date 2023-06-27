@@ -59,6 +59,10 @@ int32_t UartService::postRequest(const uint8_t* data, size_t len) {
                           uart_msg.sequence_number) == Status_t::Ok) {
       status = 0;
     }
+
+  } else if (uart_msg.which_msg == uart_proto_UartMsg_cfg_msg_tag) {
+    DEBUG_INFO("Config request received")
+    uart1_.config(uart_msg.msg.cfg_msg.baudrate);
   }
 
   return status;

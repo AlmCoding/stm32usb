@@ -44,9 +44,21 @@ void UartIrq::txCpltCallback(UART_HandleTypeDef* huart) {
   }
 }
 
+void UartIrq::rxTimeoutCallback(UART_HandleTypeDef* huart) {
+  for (size_t i = 0; i < sizeof(uart_); i++) {
+    if (uart_[i]->uart_handle_ == huart) {
+      uart_[i]->rxTimeoutCallback();
+    }
+  }
+}
+
 extern "C" {
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
   UartIrq::getInstance().txCpltCallback(huart);
+}
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t /*Size*/) {
+  UartIrq::getInstance().rxTimeoutCallback(huart);
 }
 }  // extern "C"
 
