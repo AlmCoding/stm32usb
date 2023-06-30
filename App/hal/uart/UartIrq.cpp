@@ -24,13 +24,16 @@ namespace hal::uart {
 UartIrq::UartIrq() {}
 
 Status_t UartIrq::registerUart(Uart* uart) {
-  Status_t status = Status_t::Error;
+  Status_t status;
 
   if ((uart != nullptr) && (registered_ < sizeof(uart_))) {
-    DEBUG_INFO("Register txCpltCallback (%d) [ok]", registered_)
+    DEBUG_INFO("Register uart (%d) [ok]", registered_)
     uart_[registered_] = uart;
     registered_++;
-    status = Status_t::Ok;
+
+  } else {
+    DEBUG_INFO("Register uart (%d) [failed]", registered_)
+    status = Status_t::Error;
   }
 
   return status;
@@ -44,10 +47,10 @@ void UartIrq::txCpltCallback(UART_HandleTypeDef* huart) {
   }
 }
 
-void UartIrq::rxTimeoutCallback(UART_HandleTypeDef* huart) {
+void UartIrq::rxCpltCallback(UART_HandleTypeDef* huart) {
   for (size_t i = 0; i < sizeof(uart_); i++) {
     if (uart_[i]->uart_handle_ == huart) {
-      uart_[i]->rxTimeoutCallback();
+      uart_[i]->rxCpltCallback();
     }
   }
 }
@@ -57,8 +60,8 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
   UartIrq::getInstance().txCpltCallback(huart);
 }
 
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t /*Size*/) {
-  UartIrq::getInstance().rxTimeoutCallback(huart);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
+  UartIrq::getInstance().rxCpltCallback(huart);
 }
 }  // extern "C"
 

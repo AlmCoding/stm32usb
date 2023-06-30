@@ -60,7 +60,7 @@ Status_t Uart::config(uint32_t baudrate) {
 }
 
 Status_t Uart::init() {
-  // TODO stop rx interrupts?
+  // TODO disable rx interrupts?
   // ...
 
   this_tx_start_ = 0;
@@ -99,20 +99,24 @@ uint32_t Uart::poll() {
 }
 
 Status_t Uart::stopDma() {
+  Status_t status;
+
   if (HAL_UART_DMAStop(uart_handle_) == HAL_OK) {
     DEBUG_INFO("Stop dma [ok]")
-    return Status_t::Ok;
+    status = Status_t::Ok;
+
+  } else {
+    DEBUG_ERROR("Stop dma [failed]")
+    status = Status_t::Error;
   }
-  DEBUG_ERROR("Stop dma [failed]")
-  return Status_t::Error;
+
+  return status;
 }
 
 Status_t Uart::startRx() {
   Status_t status;
-  HAL_StatusTypeDef rx_status;
 
-  rx_status = HAL_UART_Receive_DMA(uart_handle_, rx_buffer_, sizeof(rx_buffer_));
-  if (rx_status == HAL_OK) {
+  if (HAL_UART_Receive_DMA(uart_handle_, rx_buffer_, sizeof(rx_buffer_)) == HAL_OK) {
     DEBUG_INFO("Start rx [ok]")
     status = Status_t::Ok;
 
@@ -127,8 +131,9 @@ Status_t Uart::startRx() {
 bool Uart::isRxBufferEmpty() {
   if (rx_read_pos_ == DMA_RX_WRITE_POS) {
     return true;
+  } else {
+    return false;
   }
-  return false;
 }
 
 size_t Uart::getFreeTxSpace(uint32_t seq_num) {
@@ -280,8 +285,8 @@ void Uart::txCpltCallback() {
   send_status_msg_ = true;
 }
 
-void Uart::rxTimeoutCallback() {
-  DEBUG_INFO("Rx timeout (seq: %d)", seqence_number_)
+void Uart::rxCpltCallback() {
+  DEBUG_INFO("Rx cplt (seq: %d)", seqence_number_)
 
   // Trigger uart task for fast service notification
   os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
