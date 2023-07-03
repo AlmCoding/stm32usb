@@ -15,6 +15,7 @@ namespace os {
 typedef StaticSemaphore_t osStaticMutexDef_t;
 
 extern osMutexId_t ServiceUartMutexHandle;
+extern osMutexId_t ServiceGpioMutexHandle;
 
 void createMutexes();
 

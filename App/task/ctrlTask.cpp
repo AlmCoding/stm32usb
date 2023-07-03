@@ -49,7 +49,7 @@ void processMsg(os::msg::BaseMsg* msg) {
   DEBUG_INFO("Msg received: %d", ++msg_count_)
 
   switch (msg->id) {
-    case os::msg::MsgId::ServiceTxRequest: {
+    case os::msg::MsgId::ServiceUpstreamRequest: {
       while (msg->cnt > 0) {
         stopwatch.start();
         driver::tf::FrameDriver::getInstance().callTxCallback(msg->type);

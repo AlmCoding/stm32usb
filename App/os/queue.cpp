@@ -34,6 +34,18 @@ static const osMessageQueueAttr_t uartTaskQueue_attributes = {
   .mq_size = sizeof(uartTaskQueueBuffer),
 };
 
+/* Definitions for gpioTaskQueue */
+static osMessageQueueId_t gpioTaskQueueHandle;
+static uint8_t gpioTaskQueueBuffer[QueueSize_GpioTask * sizeof(msg::BaseMsg)];
+static osStaticMessageQDef_t gpioTaskQueueControlBlock;
+static const osMessageQueueAttr_t gpioTaskQueue_attributes = {
+  .name = "gpioTaskQueue",
+  .cb_mem = &gpioTaskQueueControlBlock,
+  .cb_size = sizeof(gpioTaskQueueControlBlock),
+  .mq_mem = &gpioTaskQueueBuffer,
+  .mq_size = sizeof(gpioTaskQueueBuffer),
+};
+
 void createQueues() {
   /* Create the queue(s) */
 
@@ -42,6 +54,9 @@ void createQueues() {
 
   /* creation of uartTaskQueue */
   uartTaskQueueHandle = osMessageQueueNew(QueueSize_UartTask, sizeof(msg::BaseMsg), &uartTaskQueue_attributes);
+
+  /* creation of gpioTaskQueue */
+  gpioTaskQueueHandle = osMessageQueueNew(QueueSize_GpioTask, sizeof(msg::BaseMsg), &gpioTaskQueue_attributes);
 }
 
 osMessageQueueId_t getQueue(msg::MsgQueue queue) {
@@ -54,6 +69,10 @@ osMessageQueueId_t getQueue(msg::MsgQueue queue) {
     }
     case msg::MsgQueue::UartTaskQueue: {
       qhdl = uartTaskQueueHandle;
+      break;
+    }
+    case msg::MsgQueue::GpioTaskQueue: {
+      qhdl = gpioTaskQueueHandle;
       break;
     }
     default: {

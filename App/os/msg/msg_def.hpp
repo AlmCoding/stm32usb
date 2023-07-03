@@ -16,11 +16,12 @@ enum class MsgQueue {
   UsbTaskQueue = 0,
   CtrlTaskQueue,
   UartTaskQueue,
+  GpioTaskQueue,
 };
 
 enum class MsgId {
   TriggerTask = 0,
-  ServiceTxRequest,
+  ServiceUpstreamRequest,
 };
 
 typedef uint32_t RequestCnt;

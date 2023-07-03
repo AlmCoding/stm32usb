@@ -59,7 +59,7 @@ void uartTask(void* /*argument*/) {
         DEBUG_INFO("Request srv from ctrlTask")
         // Inform CtrlTask to service received data
         os::msg::BaseMsg req_msg = {
-          .id = os::msg::MsgId::ServiceTxRequest,
+          .id = os::msg::MsgId::ServiceUpstreamRequest,
           .type = TaskUsbMsgType,
           .cnt = service_requests,
         };

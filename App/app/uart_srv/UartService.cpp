@@ -7,13 +7,12 @@
 
 #include "app/uart_srv/UartService.hpp"
 #include "os/msg/msg_broker.hpp"
-#include "usart.h"
+#include "srv/debug.hpp"
 
 #include "pb_common.h"
 #include "pb_decode.h"
 #include "pb_encode.h"
 #include "proto_c/uart.pb.h"
-#include "srv/debug.hpp"
 
 #define DEBUG_ENABLE_UART_SERVICE
 #ifdef DEBUG_ENABLE_UART_SERVICE
@@ -28,7 +27,7 @@
 
 namespace app::uart_srv {
 
-UartService::UartService() : uart1_{ &huart1 } {}
+UartService::UartService() {}
 
 UartService::~UartService() {}
 
@@ -61,8 +60,9 @@ int32_t UartService::postRequest(const uint8_t* data, size_t len) {
     }
 
   } else if (uart_msg.which_msg == uart_proto_UartMsg_cfg_msg_tag) {
-    DEBUG_INFO("Config request received")
-    uart1_.config(uart_msg.msg.cfg_msg.baudrate);
+    if (uart1_.config(uart_msg.msg.cfg_msg.baudrate) == Status_t::Ok) {
+      status = 0;
+    }
   }
 
   return status;

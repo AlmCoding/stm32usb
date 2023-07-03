@@ -17,6 +17,7 @@ typedef StaticQueue_t osStaticMessageQDef_t;
 
 constexpr size_t QueueSize_CtrlTask = 8;
 constexpr size_t QueueSize_UartTask = 8;
+constexpr size_t QueueSize_GpioTask = 8;
 
 void createQueues();
 osMessageQueueId_t getQueue(msg::MsgQueue queue);

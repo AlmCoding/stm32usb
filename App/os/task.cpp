@@ -8,6 +8,7 @@
 #include "os/task.hpp"
 
 #include "task/ctrlTask.hpp"
+#include "task/gpioTask.hpp"
 #include "task/uartTask.hpp"
 
 namespace os {
@@ -38,6 +39,19 @@ static const osThreadAttr_t uartTask_attributes = {
   .priority = Priority_UartTask,
 };
 
+/* Definitions for gpioTask */
+static osThreadId_t gpioTaskHandle;
+static uint8_t gpioTaskBuffer[StackSize_GpioTask];
+static osStaticThreadDef_t gpioTaskControlBlock;
+static const osThreadAttr_t gpioTask_attributes = {
+  .name = "gpioTask",
+  .cb_mem = &gpioTaskControlBlock,
+  .cb_size = sizeof(gpioTaskControlBlock),
+  .stack_mem = &gpioTaskBuffer[0],
+  .stack_size = sizeof(gpioTaskBuffer),
+  .priority = Priority_GpioTask,
+};
+
 void createTasks() {
   /* Create the thread(s) */
 
@@ -46,6 +60,9 @@ void createTasks() {
 
   /* creation of uartTask */
   uartTaskHandle = osThreadNew(task::uart::uartTask, NULL, &uartTask_attributes);
+
+  /* creation of gpioTask */
+  gpioTaskHandle = osThreadNew(task::gpio::gpioTask, NULL, &gpioTask_attributes);
 }
 
 }  // namespace os
