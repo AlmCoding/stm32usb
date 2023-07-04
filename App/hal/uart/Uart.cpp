@@ -26,14 +26,14 @@
 
 namespace hal::uart {
 
-Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {
-  UartIrq::getInstance().registerUart(this);
-}
+Uart::Uart(UART_HandleTypeDef* uart_handle) : uart_handle_{ uart_handle } {}
 
 Uart::~Uart() {}
 
 Status_t Uart::config(uint32_t baudrate) {
   Status_t status;
+
+  UartIrq::getInstance().registerUart(this);
   stopDma();
 
   // Set new configuration
@@ -60,9 +60,6 @@ Status_t Uart::config(uint32_t baudrate) {
 }
 
 Status_t Uart::init() {
-  // TODO disable rx interrupts?
-  // ...
-
   this_tx_start_ = 0;
   next_tx_start_ = 0;
   next_tx_end_ = 0;

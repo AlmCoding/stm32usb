@@ -22,8 +22,8 @@ enum class UsbMsgType : uint8_t {
   I2cMsg,
   SpiMsg,
   CanMsg,
-  PwmMsg,
   GpioMsg,
+  PwmMsg,
   AdcMsg,
   // Keep this at the end
   NumValues,

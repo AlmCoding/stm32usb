@@ -26,10 +26,18 @@ UartIrq::UartIrq() {}
 Status_t UartIrq::registerUart(Uart* uart) {
   Status_t status;
 
+  // Check if already registered
+  for (size_t i = 0; i < registered_; i++) {
+    if (uart_[i] == uart) {
+      return Status_t::Ok;
+    }
+  }
+
   if ((uart != nullptr) && (registered_ < sizeof(uart_))) {
     DEBUG_INFO("Register uart (%d) [ok]", registered_)
     uart_[registered_] = uart;
     registered_++;
+    status = Status_t::Ok;
 
   } else {
     DEBUG_INFO("Register uart (%d) [failed]", registered_)

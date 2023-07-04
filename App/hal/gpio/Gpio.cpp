@@ -21,10 +21,7 @@
 
 namespace hal::gpio {
 
-Gpio::Gpio(GPIO_TypeDef* port, uint16_t pin, GpioId id, GpioMode mode)
-    : port_{ port }, pin_{ pin }, id_{ id }, mode_{ mode } {
-  config(mode);
-}
+Gpio::Gpio(GPIO_TypeDef* port, uint16_t pin, GpioId id) : port_{ port }, pin_{ pin }, id_{ id } {}
 
 Gpio::~Gpio() {}
 
@@ -59,6 +56,7 @@ void Gpio::config(GpioMode mode) {
     }
   }
 
+  DEBUG_INFO("Config pin: %d, mode: %d => %d", pin_, mode_, mode);
   mode_ = mode;
 }
 

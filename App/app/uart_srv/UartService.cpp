@@ -32,7 +32,7 @@ UartService::UartService() {}
 UartService::~UartService() {}
 
 void UartService::init() {
-  uart1_.init();
+  uart1_.config(115200);
 }
 
 uint32_t UartService::poll() {

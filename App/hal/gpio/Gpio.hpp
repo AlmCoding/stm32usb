@@ -27,11 +27,12 @@ enum class GpioMode {
   InputNoPull,
   OutputPushPull,
   OutputOpenDrain,
+  NotInitialized,
 };
 
 class Gpio {
  public:
-  Gpio(GPIO_TypeDef* port, uint16_t pin, GpioId id, GpioMode mode);
+  Gpio(GPIO_TypeDef* port, uint16_t pin, GpioId id);
   virtual ~Gpio();
 
   void config(GpioMode mode);
@@ -49,7 +50,7 @@ class Gpio {
   GPIO_TypeDef* port_;
   uint16_t pin_;
   GpioId id_;
-  GpioMode mode_;
+  GpioMode mode_ = GpioMode::NotInitialized;
 };
 
 }  // namespace hal::gpio

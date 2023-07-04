@@ -31,7 +31,12 @@ GpioService::GpioService() {}
 
 GpioService::~GpioService() {}
 
-void GpioService::init() {}
+void GpioService::init() {
+  gpio1_.config(hal::gpio::GpioMode::InputPullDown);
+  gpio2_.config(hal::gpio::GpioMode::InputPullDown);
+  gpio3_.config(hal::gpio::GpioMode::InputPullDown);
+  gpio4_.config(hal::gpio::GpioMode::InputPullDown);
+}
 
 uint32_t GpioService::poll() {
   return 0;
