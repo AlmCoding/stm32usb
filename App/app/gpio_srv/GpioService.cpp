@@ -39,10 +39,12 @@ void GpioService::init() {
 }
 
 uint32_t GpioService::poll() {
-  return 0;
+  return static_cast<uint32_t>(send_data_msg_);
 }
 
 int32_t GpioService::postRequest(const uint8_t* data, size_t len) {
+  int32_t status = -1;
+
   /* Allocate space for the decoded message. */
   gpio_proto_GpioMsg gpio_msg = gpio_proto_GpioMsg_init_zero;
   /* Create a stream that reads from the buffer. */
@@ -59,16 +61,19 @@ int32_t GpioService::postRequest(const uint8_t* data, size_t len) {
     gpio2_.write_pin(gpio_msg.msg.data_msg.gpio2);
     gpio3_.write_pin(gpio_msg.msg.data_msg.gpio3);
     gpio4_.write_pin(gpio_msg.msg.data_msg.gpio4);
+    status = 0;
 
   } else if (gpio_msg.which_msg == gpio_proto_GpioMsg_cfg_msg_tag) {
     gpio1_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio1));
     gpio2_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio2));
     gpio3_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio3));
     gpio4_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio4));
+    status = 0;
   }
 
   seqence_number_ = gpio_msg.sequence_number;
-  return 0;
+  send_data_msg_ = true;
+  return status;
 }
 
 int32_t GpioService::serviceRequest(uint8_t* data, size_t max_len) {
@@ -77,6 +82,7 @@ int32_t GpioService::serviceRequest(uint8_t* data, size_t max_len) {
   /* Create a stream that will write to our buffer. */
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_len);
 
+  send_data_msg_ = false;
   gpio_msg.sequence_number = seqence_number_;
   gpio_msg.which_msg = gpio_proto_GpioMsg_data_msg_tag;
 
@@ -86,6 +92,13 @@ int32_t GpioService::serviceRequest(uint8_t* data, size_t max_len) {
   gpio_msg.msg.data_msg.gpio4 = gpio4_.read_pin();
 
   DEBUG_INFO("Srv data (seq: %d)", gpio_msg.sequence_number);
+
+  /* Now we are ready to encode the message! */
+  if (pb_encode(&stream, gpio_proto_GpioMsg_fields, &gpio_msg) == false) {
+    DEBUG_ERROR("ProtoBuf encode [failed]");
+    return -1;
+  }
+
   return stream.bytes_written;
 }
 

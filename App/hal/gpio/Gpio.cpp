@@ -56,7 +56,7 @@ void Gpio::config(GpioMode mode) {
     }
   }
 
-  DEBUG_INFO("Config pin: %d, mode: %d => %d", pin_, mode_, mode);
+  DEBUG_INFO("Cfg pin: %d, mode: %d => %d", pin_, mode_, mode);
   mode_ = mode;
 }
 

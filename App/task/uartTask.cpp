@@ -92,8 +92,11 @@ int32_t uartTask_serviceRequest(uint8_t* data, size_t max_len) {
     len = uart_service_.serviceRequest(data, max_len);
     ongoing_service_ = false;
 
-    DEBUG_INFO("Service request: %d", msg_count_)
+    DEBUG_INFO("Service request: %d [ok]", msg_count_)
     osMutexRelease(os::ServiceUartMutexHandle);
+
+  } else {
+    DEBUG_ERROR("Service request: %d [failed]", msg_count_)
   }
 
   return len;

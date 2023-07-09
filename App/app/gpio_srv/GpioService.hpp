@@ -32,6 +32,7 @@ class GpioService {
   hal::gpio::Gpio gpio4_{ GPIOC, GPIO_3_Pin, hal::gpio::GpioId::Gpio4 };
 
   uint32_t seqence_number_ = 0;
+  bool send_data_msg_ = false;
 };
 
 }  // namespace app::gpio_srv

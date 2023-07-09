@@ -45,6 +45,9 @@ void FrameDriver::callTxCallback(app::usb::UsbMsgType type) {
   if (msg.len > 0) {
     DEBUG_INFO("O=> msg: type: %d, len: %d", msg.type, msg.len);
     TF_Send(&tf_, &msg);
+
+  } else {
+    DEBUG_ERROR("Msg (type: %d) is empty!", msg.type)
   }
 }
 
