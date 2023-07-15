@@ -28,77 +28,63 @@
 
 namespace task::gpio {
 
-int32_t gpioTask_postRequest(const uint8_t* data, size_t size);
-int32_t gpioTask_serviceRequest(uint8_t* data, size_t max_size);
+void gpioTask_requestService_cb(os::msg::RequestCnt cnt);
+int32_t gpioTask_postRequest_cb(const uint8_t* data, size_t size);
+int32_t gpioTask_serviceRequest_cb(uint8_t* data, size_t max_size);
 
+constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::GpioMsg;
 static app::gpio_srv::GpioService gpio_service_{};
 static bool ongoing_service_ = false;
 static uint32_t msg_count_ = 0;
 
 void gpioTask(void* /*argument*/) {
-  constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::GpioMsg;
-  static os::msg::BaseMsg msg;
+  os::msg::BaseMsg msg;
 
-  gpio_service_.init();
+  // Initialize service with notification callback
+  gpio_service_.init(gpioTask_requestService_cb);
 
   // Register callback for incoming msg
-  driver::tf::FrameDriver::getInstance().registerRxCallback(TaskUsbMsgType, gpioTask_postRequest);
+  driver::tf::FrameDriver::getInstance().registerRxCallback(TaskUsbMsgType, gpioTask_postRequest_cb);
 
   // Register callback for outgoing msg
-  driver::tf::FrameDriver::getInstance().registerTxCallback(TaskUsbMsgType, gpioTask_serviceRequest);
+  driver::tf::FrameDriver::getInstance().registerTxCallback(TaskUsbMsgType, gpioTask_serviceRequest_cb);
 
   /* Infinite loop */
   for (;;) {
     if (os::msg::receive_msg(os::msg::MsgQueue::GpioTaskQueue, &msg, os::CycleTime_GpioTask) == true) {
       // process msg
     }
-
-    if (osMutexAcquire(os::ServiceGpioMutexHandle, Ticks100ms) == osOK) {
-      uint32_t service_requests = gpio_service_.poll();
-      if ((service_requests > 0) && (ongoing_service_ == false)) {
-        DEBUG_INFO("Request srv from ctrlTask")
-        // Inform CtrlTask to service received data
-        os::msg::BaseMsg req_msg = {
-          .id = os::msg::MsgId::ServiceUpstreamRequest,
-          .type = TaskUsbMsgType,
-          .cnt = service_requests,
-        };
-
-        if (os::msg::send_msg(os::msg::MsgQueue::CtrlTaskQueue, &req_msg) == true) {
-          ongoing_service_ = true;
-          DEBUG_INFO("Send msg: %d [ok]", ++msg_count_)
-
-        } else {
-          DEBUG_ERROR("Send msg: %d [failed]", ++msg_count_)
-        }
-
-      } else if (service_requests > 0) {
-        DEBUG_WARN("Wait srv cplt ...")
-      }
-
-      osMutexRelease(os::ServiceGpioMutexHandle);
-    }
   }
 }
 
-int32_t gpioTask_postRequest(const uint8_t* data, size_t len) {
+void gpioTask_requestService_cb(os::msg::RequestCnt cnt) {
+  if (ongoing_service_ == true) {
+    return;
+  }
+  ongoing_service_ = true;
+
+  os::msg::BaseMsg req_msg = {
+    .id = os::msg::MsgId::ServiceUpstreamRequest,
+    .type = TaskUsbMsgType,
+    .cnt = cnt,
+  };
+
+  if (os::msg::send_msg(os::msg::MsgQueue::CtrlTaskQueue, &req_msg) == true) {
+    DEBUG_INFO("Notify ctrlTask: %d [ok]", ++msg_count_)
+  } else {
+    DEBUG_ERROR("Notify ctrlTask: %d [failed]", ++msg_count_)
+  }
+}
+
+int32_t gpioTask_postRequest_cb(const uint8_t* data, size_t len) {
   return gpio_service_.postRequest(data, len);
 }
 
-int32_t gpioTask_serviceRequest(uint8_t* data, size_t max_len) {
-  int32_t len = -1;
+int32_t gpioTask_serviceRequest_cb(uint8_t* data, size_t max_len) {
+  ongoing_service_ = false;
+  int32_t len = gpio_service_.serviceRequest(data, max_len);
 
-  if (osMutexAcquire(os::ServiceGpioMutexHandle, Ticks100ms) == osOK) {
-    len = gpio_service_.serviceRequest(data, max_len);
-    ongoing_service_ = false;
-
-    DEBUG_INFO("Service request: %d [ok]", msg_count_)
-    osMutexRelease(os::ServiceGpioMutexHandle);
-
-  } else {
-    DEBUG_ERROR("Service request: %d [failed]", msg_count_)
-  }
-
+  DEBUG_INFO("Service request: %d [ok]", msg_count_)
   return len;
 }
 

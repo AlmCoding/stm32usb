@@ -32,25 +32,31 @@ enum class GpioMode {
 
 class Gpio {
  public:
-  Gpio(GPIO_TypeDef* port, uint16_t pin, GpioId id);
+  Gpio(GPIO_TypeDef* port, uint16_t pin, IRQn_Type irq, GpioId id);
   virtual ~Gpio();
 
-  void config(GpioMode mode);
-
-  bool read_pin();
-  void write_pin(bool state);
+  Status_t config(GpioMode mode);
+  bool readPin();
+  void writePin(bool state);
 
  private:
-  void config_input_pulldown();
-  void config_input_pullup();
-  void config_input();
-  void config_output_pushpull();
-  void config_output_opendrain();
+  void configInputPullDown();
+  void configInputPullUp();
+  void configInput();
+  void configOutputPushPull();
+  void configOutputOpenDrain();
+  void extiCb();
 
   GPIO_TypeDef* port_;
   uint16_t pin_;
+  IRQn_Type irq_;
   GpioId id_;
   GpioMode mode_ = GpioMode::NotInitialized;
+
+  bool in_interrupt_read_ = false;
+  bool in_interrupt_state_ = false;
+
+  friend class GpioIrq;
 };
 
 }  // namespace hal::gpio

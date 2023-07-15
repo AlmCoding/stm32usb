@@ -34,7 +34,7 @@ static uint32_t msg_count_ = 0;
 void processMsg(os::msg::BaseMsg* msg);
 
 void ctrlTask(void* /*argument*/) {
-  static os::msg::BaseMsg msg;
+  os::msg::BaseMsg msg;
 
   /* Infinite loop */
   for (;;) {
@@ -46,7 +46,7 @@ void ctrlTask(void* /*argument*/) {
 
 void processMsg(os::msg::BaseMsg* msg) {
   srv::Stopwatch stopwatch{};
-  DEBUG_INFO("Msg received: %d", ++msg_count_)
+  DEBUG_INFO("Notification received: %d", ++msg_count_)
 
   switch (msg->id) {
     case os::msg::MsgId::ServiceUpstreamRequest: {

@@ -6,6 +6,7 @@
  */
 
 #include "app/gpio_srv/GpioService.hpp"
+#include "hal/gpio/GpioIrq.hpp"
 #include "os/msg/msg_broker.hpp"
 #include "srv/debug.hpp"
 
@@ -31,19 +32,18 @@ GpioService::GpioService() {}
 
 GpioService::~GpioService() {}
 
-void GpioService::init() {
+void GpioService::init(app::ctrl::RequestSrvCallback request_service_cb) {
   gpio1_.config(hal::gpio::GpioMode::InputPullDown);
   gpio2_.config(hal::gpio::GpioMode::InputPullDown);
   gpio3_.config(hal::gpio::GpioMode::InputPullDown);
   gpio4_.config(hal::gpio::GpioMode::InputPullDown);
-}
 
-uint32_t GpioService::poll() {
-  return static_cast<uint32_t>(send_data_msg_);
+  request_service_cb_ = request_service_cb;
+  hal::gpio::GpioIrq::getInstance().registerRequestSrvCallback(request_service_cb);
 }
 
 int32_t GpioService::postRequest(const uint8_t* data, size_t len) {
-  int32_t status = -1;
+  int32_t status;
 
   /* Allocate space for the decoded message. */
   gpio_proto_GpioMsg gpio_msg = gpio_proto_GpioMsg_init_zero;
@@ -57,10 +57,11 @@ int32_t GpioService::postRequest(const uint8_t* data, size_t len) {
   }
 
   if (gpio_msg.which_msg == gpio_proto_GpioMsg_data_msg_tag) {
-    gpio1_.write_pin(gpio_msg.msg.data_msg.gpio1);
-    gpio2_.write_pin(gpio_msg.msg.data_msg.gpio2);
-    gpio3_.write_pin(gpio_msg.msg.data_msg.gpio3);
-    gpio4_.write_pin(gpio_msg.msg.data_msg.gpio4);
+    gpio1_.writePin(gpio_msg.msg.data_msg.gpio1);
+    gpio2_.writePin(gpio_msg.msg.data_msg.gpio2);
+    gpio3_.writePin(gpio_msg.msg.data_msg.gpio3);
+    gpio4_.writePin(gpio_msg.msg.data_msg.gpio4);
+    request_service_cb_(1);
     status = 0;
 
   } else if (gpio_msg.which_msg == gpio_proto_GpioMsg_cfg_msg_tag) {
@@ -68,11 +69,15 @@ int32_t GpioService::postRequest(const uint8_t* data, size_t len) {
     gpio2_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio2));
     gpio3_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio3));
     gpio4_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio4));
+    request_service_cb_(1);
     status = 0;
+
+  } else {
+    DEBUG_ERROR("Unknown ProtoBuf msg!");
+    status = -1;
   }
 
   seqence_number_ = gpio_msg.sequence_number;
-  send_data_msg_ = true;
   return status;
 }
 
@@ -82,14 +87,13 @@ int32_t GpioService::serviceRequest(uint8_t* data, size_t max_len) {
   /* Create a stream that will write to our buffer. */
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_len);
 
-  send_data_msg_ = false;
   gpio_msg.sequence_number = seqence_number_;
   gpio_msg.which_msg = gpio_proto_GpioMsg_data_msg_tag;
 
-  gpio_msg.msg.data_msg.gpio1 = gpio1_.read_pin();
-  gpio_msg.msg.data_msg.gpio2 = gpio2_.read_pin();
-  gpio_msg.msg.data_msg.gpio3 = gpio3_.read_pin();
-  gpio_msg.msg.data_msg.gpio4 = gpio4_.read_pin();
+  gpio_msg.msg.data_msg.gpio1 = gpio1_.readPin();
+  gpio_msg.msg.data_msg.gpio2 = gpio2_.readPin();
+  gpio_msg.msg.data_msg.gpio3 = gpio3_.readPin();
+  gpio_msg.msg.data_msg.gpio4 = gpio4_.readPin();
 
   DEBUG_INFO("Srv data (seq: %d)", gpio_msg.sequence_number);
 

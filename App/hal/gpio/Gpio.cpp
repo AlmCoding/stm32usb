@@ -6,6 +6,7 @@
  */
 
 #include "hal/gpio/Gpio.hpp"
+#include "hal/gpio/GpioIrq.hpp"
 #include "srv/debug.hpp"
 
 #define DEBUG_ENABLE_GPIO
@@ -19,110 +20,137 @@
 #define DEBUG_ERROR(...)
 #endif
 
+#define IS_OUTPUT_MODE(x) ((x == GpioMode::OutputPushPull) || (x == GpioMode::OutputOpenDrain))
+
 namespace hal::gpio {
 
-Gpio::Gpio(GPIO_TypeDef* port, uint16_t pin, GpioId id) : port_{ port }, pin_{ pin }, id_{ id } {}
+Gpio::Gpio(GPIO_TypeDef* port, uint16_t pin, IRQn_Type irq, GpioId id)
+    : port_{ port }, pin_{ pin }, irq_{ irq }, id_{ id } {}
 
 Gpio::~Gpio() {}
 
-void Gpio::config(GpioMode mode) {
+Status_t Gpio::config(GpioMode mode) {
+  Status_t status = Status_t::Ok;
+
   if (mode_ == mode) {
-    return;
+    return status;
   }
 
   switch (mode) {
     case GpioMode::InputPullDown: {
-      config_input_pulldown();
+      configInputPullDown();
       break;
     }
     case GpioMode::InputPullUp: {
-      config_input_pullup();
+      configInputPullUp();
       break;
     }
     case GpioMode::InputNoPull: {
-      config_input();
+      configInput();
       break;
     }
     case GpioMode::OutputPushPull: {
-      config_output_pushpull();
+      configOutputPushPull();
       break;
     }
     case GpioMode::OutputOpenDrain: {
-      config_output_opendrain();
+      configOutputOpenDrain();
       break;
     }
     default: {
+      status = Status_t::Error;
       break;
     }
   }
 
-  DEBUG_INFO("Cfg pin: %d, mode: %d => %d", pin_, mode_, mode);
+  DEBUG_INFO("Cfg gpio(%d), mode: %d => %d", id_, mode_, mode);
+
+  if (IS_OUTPUT_MODE(mode) == true) {
+    GpioIrq::getInstance().deregisterGpio(this);
+  } else {
+    GpioIrq::getInstance().registerGpio(this);
+  }
+
   mode_ = mode;
+  return status;
 }
 
-bool Gpio::read_pin() {
-  auto state = HAL_GPIO_ReadPin(port_, pin_);
-  DEBUG_INFO("Read pin: %d = %d", pin_, state);
-  return static_cast<bool>(state);
+bool Gpio::readPin() {
+  if (in_interrupt_read_ == false) {
+    auto state = HAL_GPIO_ReadPin(port_, pin_);
+    DEBUG_INFO("Read gpio(%d): %d", id_, state);
+    return static_cast<bool>(state);
+
+  } else {
+    in_interrupt_read_ = false;
+    return in_interrupt_state_;
+  }
 }
 
-void Gpio::write_pin(bool state) {
+void Gpio::writePin(bool state) {
   if (mode_ >= GpioMode::OutputPushPull) {
-    DEBUG_INFO("Write pin: %d = %d", pin_, state);
+    DEBUG_INFO("Write gpio(%d): %d", id_, state);
     HAL_GPIO_WritePin(port_, pin_, static_cast<GPIO_PinState>(state));
   }
 }
 
-void Gpio::config_input_pulldown() {
-  GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+void Gpio::configInputPullDown() {
+  GPIO_InitTypeDef init_struct = { 0 };
 
-  GPIO_InitStruct.Pin = pin_;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  init_struct.Pin = pin_;
+  init_struct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  init_struct.Pull = GPIO_PULLDOWN;
 
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &init_struct);
 }
 
-void Gpio::config_input_pullup() {
-  GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+void Gpio::configInputPullUp() {
+  GPIO_InitTypeDef init_struct = { 0 };
 
-  GPIO_InitStruct.Pin = pin_;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  init_struct.Pin = pin_;
+  init_struct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  init_struct.Pull = GPIO_PULLUP;
 
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &init_struct);
 }
 
-void Gpio::config_input() {
-  GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+void Gpio::configInput() {
+  GPIO_InitTypeDef init_struct = { 0 };
 
-  GPIO_InitStruct.Pin = pin_;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  init_struct.Pin = pin_;
+  init_struct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  init_struct.Pull = GPIO_NOPULL;
 
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &init_struct);
 }
 
-void Gpio::config_output_pushpull() {
-  GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+void Gpio::configOutputPushPull() {
+  GPIO_InitTypeDef init_struct = { 0 };
 
-  GPIO_InitStruct.Pin = pin_;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  init_struct.Pin = pin_;
+  init_struct.Mode = GPIO_MODE_OUTPUT_PP;
+  init_struct.Pull = GPIO_NOPULL;
+  init_struct.Speed = GPIO_SPEED_FREQ_MEDIUM;
 
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &init_struct);
 }
 
-void Gpio::config_output_opendrain() {
-  GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+void Gpio::configOutputOpenDrain() {
+  GPIO_InitTypeDef init_struct = { 0 };
 
-  GPIO_InitStruct.Pin = pin_;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  init_struct.Pin = pin_;
+  init_struct.Mode = GPIO_MODE_OUTPUT_OD;
+  init_struct.Pull = GPIO_NOPULL;
+  init_struct.Speed = GPIO_SPEED_FREQ_MEDIUM;
 
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &init_struct);
+}
+
+void Gpio::extiCb() {
+  auto state = HAL_GPIO_ReadPin(port_, pin_);
+  DEBUG_INFO("Read gpio(%d): %d [exti]", id_, state);
+  in_interrupt_state_ = static_cast<bool>(state);
+  in_interrupt_read_ = true;
 }
 
 }  // namespace hal::gpio

@@ -68,12 +68,16 @@ void initPeripherals();
 #define OSC_OUT_GPIO_Port GPIOF
 #define GPIO_0_Pin GPIO_PIN_0
 #define GPIO_0_GPIO_Port GPIOC
+#define GPIO_0_EXTI_IRQn EXTI0_IRQn
 #define GPIO_1_Pin GPIO_PIN_1
 #define GPIO_1_GPIO_Port GPIOC
+#define GPIO_1_EXTI_IRQn EXTI1_IRQn
 #define GPIO_2_Pin GPIO_PIN_2
 #define GPIO_2_GPIO_Port GPIOC
+#define GPIO_2_EXTI_IRQn EXTI2_TSC_IRQn
 #define GPIO_3_Pin GPIO_PIN_3
 #define GPIO_3_GPIO_Port GPIOC
+#define GPIO_3_EXTI_IRQn EXTI3_IRQn
 #define B1_Pin GPIO_PIN_0
 #define B1_GPIO_Port GPIOA
 #define LD4_Pin GPIO_PIN_8

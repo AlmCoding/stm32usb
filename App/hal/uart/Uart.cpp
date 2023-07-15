@@ -32,8 +32,6 @@ Uart::~Uart() {}
 
 Status_t Uart::config(uint32_t baudrate) {
   Status_t status;
-
-  UartIrq::getInstance().registerUart(this);
   stopDma();
 
   // Set new configuration
@@ -49,13 +47,14 @@ Status_t Uart::config(uint32_t baudrate) {
   }
 
   if (init() == Status_t::Ok) {
-    DEBUG_ERROR("Init [ok]")
+    DEBUG_INFO("Init [ok]")
 
   } else {
     DEBUG_ERROR("Init [failed]")
     status = Status_t::Error;
   }
 
+  UartIrq::getInstance().registerUart(this);
   return status;
 }
 

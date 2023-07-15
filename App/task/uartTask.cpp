@@ -28,24 +28,25 @@
 
 namespace task::uart {
 
-int32_t uartTask_postRequest(const uint8_t* data, size_t size);
-int32_t uartTask_serviceRequest(uint8_t* data, size_t max_size);
+int32_t uartTask_postRequest_cb(const uint8_t* data, size_t size);
+int32_t uartTask_serviceRequest_cb(uint8_t* data, size_t max_size);
 
+constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::UartMsg;
 static app::uart_srv::UartService uart_service_{};
 static bool ongoing_service_ = false;
 static uint32_t msg_count_ = 0;
 
 void uartTask(void* /*argument*/) {
-  constexpr app::usb::UsbMsgType TaskUsbMsgType = app::usb::UsbMsgType::UartMsg;
-  static os::msg::BaseMsg msg;
+  os::msg::BaseMsg msg;
 
+  // Initialize service with notification callback
   uart_service_.init();
 
   // Register callback for incoming msg
-  driver::tf::FrameDriver::getInstance().registerRxCallback(TaskUsbMsgType, uartTask_postRequest);
+  driver::tf::FrameDriver::getInstance().registerRxCallback(TaskUsbMsgType, uartTask_postRequest_cb);
 
   // Register callback for outgoing msg
-  driver::tf::FrameDriver::getInstance().registerTxCallback(TaskUsbMsgType, uartTask_serviceRequest);
+  driver::tf::FrameDriver::getInstance().registerTxCallback(TaskUsbMsgType, uartTask_serviceRequest_cb);
 
   /* Infinite loop */
   for (;;) {
@@ -56,7 +57,6 @@ void uartTask(void* /*argument*/) {
     if (osMutexAcquire(os::ServiceUartMutexHandle, Ticks100ms) == osOK) {
       uint32_t service_requests = uart_service_.poll();
       if ((service_requests > 0) && (ongoing_service_ == false)) {
-        DEBUG_INFO("Request srv from ctrlTask")
         // Inform CtrlTask to service received data
         os::msg::BaseMsg req_msg = {
           .id = os::msg::MsgId::ServiceUpstreamRequest,
@@ -66,10 +66,10 @@ void uartTask(void* /*argument*/) {
 
         if (os::msg::send_msg(os::msg::MsgQueue::CtrlTaskQueue, &req_msg) == true) {
           ongoing_service_ = true;
-          DEBUG_INFO("Send msg: %d [ok]", ++msg_count_)
+          DEBUG_INFO("Notify ctrlTask: %d [ok]", ++msg_count_)
 
         } else {
-          DEBUG_ERROR("Send msg: %d [failed]", ++msg_count_)
+          DEBUG_ERROR("Notify ctrlTask: %d [failed]", ++msg_count_)
         }
 
       } else if (service_requests > 0) {
@@ -81,11 +81,11 @@ void uartTask(void* /*argument*/) {
   }
 }
 
-int32_t uartTask_postRequest(const uint8_t* data, size_t len) {
+int32_t uartTask_postRequest_cb(const uint8_t* data, size_t len) {
   return uart_service_.postRequest(data, len);
 }
 
-int32_t uartTask_serviceRequest(uint8_t* data, size_t max_len) {
+int32_t uartTask_serviceRequest_cb(uint8_t* data, size_t max_len) {
   int32_t len = -1;
 
   if (osMutexAcquire(os::ServiceUartMutexHandle, Ticks100ms) == osOK) {

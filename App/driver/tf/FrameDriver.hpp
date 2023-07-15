@@ -19,6 +19,9 @@ extern "C" {
 
 namespace driver::tf {
 
+typedef int32_t (*TxCallback)(uint8_t* data, size_t max_size);
+typedef int32_t (*RxCallback)(const uint8_t* data, size_t size);
+
 class FrameDriver {
  public:
   // Deleted copy constructor and assignment operator to enforce singleton
@@ -30,10 +33,10 @@ class FrameDriver {
     return instance;
   }
 
-  Status_t registerTxCallback(app::usb::UsbMsgType type, app::usb::TxCallback callback);
+  Status_t registerTxCallback(app::usb::UsbMsgType type, TxCallback callback);
   void callTxCallback(app::usb::UsbMsgType type);
 
-  Status_t registerRxCallback(app::usb::UsbMsgType type, app::usb::RxCallback callback);
+  Status_t registerRxCallback(app::usb::UsbMsgType type, RxCallback callback);
   void callRxCallback(app::usb::UsbMsgType type, const uint8_t* data, size_t size);
 
   // Forward data to tiny frame (downstream)
@@ -43,8 +46,8 @@ class FrameDriver {
   FrameDriver();
 
   TinyFrame tf_;
-  app::usb::TxCallback tx_callbacks_[static_cast<uint8_t>(app::usb::UsbMsgType::NumValues)] = { nullptr };
-  app::usb::RxCallback rx_callbacks_[static_cast<uint8_t>(app::usb::UsbMsgType::NumValues)] = { nullptr };
+  TxCallback tx_callbacks_[static_cast<uint8_t>(app::usb::UsbMsgType::NumValues)] = { nullptr };
+  RxCallback rx_callbacks_[static_cast<uint8_t>(app::usb::UsbMsgType::NumValues)] = { nullptr };
   uint8_t tx_buffer_[TF_MAX_PAYLOAD_RX];
 };
 
