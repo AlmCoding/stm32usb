@@ -31,12 +31,18 @@ UartService::UartService() {}
 
 UartService::~UartService() {}
 
-void UartService::init() {
-  uart1_.config(115200);
+void UartService::init(app::ctrl::RequestSrvCallback request_service_cb) {
+  uart0_.config(DefaultBaudRate);
+
+  request_service_cb_ = request_service_cb;
 }
 
-uint32_t UartService::poll() {
-  return uart1_.poll();
+void UartService::poll() {
+  uint32_t request_cnt = uart0_.poll();
+
+  if (request_cnt > 0) {
+    request_service_cb_(request_cnt);
+  }
 }
 
 int32_t UartService::postRequest(const uint8_t* data, size_t len) {
@@ -54,13 +60,13 @@ int32_t UartService::postRequest(const uint8_t* data, size_t len) {
   }
 
   if (uart_msg.which_msg == uart_proto_UartMsg_data_msg_tag) {
-    if (uart1_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data_msg.data.bytes), uart_msg.msg.data_msg.data.size,
+    if (uart0_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data_msg.data.bytes), uart_msg.msg.data_msg.data.size,
                           uart_msg.sequence_number) == Status_t::Ok) {
       status = 0;
     }
 
   } else if (uart_msg.which_msg == uart_proto_UartMsg_cfg_msg_tag) {
-    if (uart1_.config(uart_msg.msg.cfg_msg.baudrate) == Status_t::Ok) {
+    if (uart0_.config(uart_msg.msg.cfg_msg.baudrate) == Status_t::Ok) {
       status = 0;
     }
   }
@@ -75,7 +81,7 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_len) {
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_len);
 
   hal::uart::ServiceRequest req;
-  uart_msg.sequence_number = uart1_.getServiceRequest(&req);
+  uart_msg.sequence_number = uart0_.getServiceRequest(&req);
 
   if (req == hal::uart::ServiceRequest::SendRxData) {
     serviceDataRequest(&uart_msg, max_len);
@@ -95,7 +101,7 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_len) {
 void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_len) {
   msg->which_msg = uart_proto_UartMsg_data_msg_tag;
 
-  size_t data_size = uart1_.serviceRx(msg->msg.data_msg.data.bytes, max_len);
+  size_t data_size = uart0_.serviceRx(msg->msg.data_msg.data.bytes, max_len);
   msg->msg.data_msg.data.size = static_cast<uint16_t>(data_size);
 
   DEBUG_INFO("Srv data (len: %d, seq: %d)", data_size, msg->sequence_number);
@@ -103,7 +109,7 @@ void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_len) {
 
 void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_size*/) {
   hal::uart::UartStatus status;
-  uart1_.serviceStatus(&status);
+  uart0_.serviceStatus(&status);
 
   msg->which_msg = uart_proto_UartMsg_status_msg_tag;
 
