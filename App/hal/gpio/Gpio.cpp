@@ -101,7 +101,7 @@ void Gpio::configInputPullDown() {
   init_struct.Mode = GPIO_MODE_IT_RISING_FALLING;
   init_struct.Pull = GPIO_PULLDOWN;
 
-  HAL_GPIO_Init(GPIOC, &init_struct);
+  HAL_GPIO_Init(port_, &init_struct);
 }
 
 void Gpio::configInputPullUp() {
@@ -111,7 +111,7 @@ void Gpio::configInputPullUp() {
   init_struct.Mode = GPIO_MODE_IT_RISING_FALLING;
   init_struct.Pull = GPIO_PULLUP;
 
-  HAL_GPIO_Init(GPIOC, &init_struct);
+  HAL_GPIO_Init(port_, &init_struct);
 }
 
 void Gpio::configInputNoPull() {
@@ -121,7 +121,7 @@ void Gpio::configInputNoPull() {
   init_struct.Mode = GPIO_MODE_IT_RISING_FALLING;
   init_struct.Pull = GPIO_NOPULL;
 
-  HAL_GPIO_Init(GPIOC, &init_struct);
+  HAL_GPIO_Init(port_, &init_struct);
 }
 
 void Gpio::configOutputPushPull() {
@@ -132,7 +132,7 @@ void Gpio::configOutputPushPull() {
   init_struct.Pull = GPIO_NOPULL;
   init_struct.Speed = GPIO_SPEED_FREQ_MEDIUM;
 
-  HAL_GPIO_Init(GPIOC, &init_struct);
+  HAL_GPIO_Init(port_, &init_struct);
 }
 
 void Gpio::configOutputOpenDrain() {
@@ -143,7 +143,7 @@ void Gpio::configOutputOpenDrain() {
   init_struct.Pull = GPIO_NOPULL;
   init_struct.Speed = GPIO_SPEED_FREQ_MEDIUM;
 
-  HAL_GPIO_Init(GPIOC, &init_struct);
+  HAL_GPIO_Init(port_, &init_struct);
 }
 
 void Gpio::extiCb() {
