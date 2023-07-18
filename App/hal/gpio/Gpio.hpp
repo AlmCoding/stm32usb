@@ -14,10 +14,14 @@
 namespace hal::gpio {
 
 enum class GpioId {
-  Gpio1 = 0,
+  Gpio0 = 0,
+  Gpio1,
   Gpio2,
   Gpio3,
   Gpio4,
+  Gpio5,
+  Gpio6,
+  Gpio7,
   GpioCount,
 };
 
@@ -42,7 +46,7 @@ class Gpio {
  private:
   void configInputPullDown();
   void configInputPullUp();
-  void configInput();
+  void configInputNoPull();
   void configOutputPushPull();
   void configOutputOpenDrain();
   void extiCb();

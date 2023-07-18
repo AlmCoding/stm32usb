@@ -46,7 +46,7 @@ Status_t Gpio::config(GpioMode mode) {
       break;
     }
     case GpioMode::InputNoPull: {
-      configInput();
+      configInputNoPull();
       break;
     }
     case GpioMode::OutputPushPull: {
@@ -76,7 +76,7 @@ Status_t Gpio::config(GpioMode mode) {
 }
 
 bool Gpio::readPin() {
-  if (in_interrupt_read_ == false) {
+  if ((in_interrupt_read_ == false) || (IS_OUTPUT_MODE(mode_) == true)) {
     auto state = HAL_GPIO_ReadPin(port_, pin_);
     DEBUG_INFO("Read gpio(%d): %d", id_, state);
     return static_cast<bool>(state);
@@ -88,7 +88,7 @@ bool Gpio::readPin() {
 }
 
 void Gpio::writePin(bool state) {
-  if (mode_ >= GpioMode::OutputPushPull) {
+  if (IS_OUTPUT_MODE(mode_) == true) {
     DEBUG_INFO("Write gpio(%d): %d", id_, state);
     HAL_GPIO_WritePin(port_, pin_, static_cast<GPIO_PinState>(state));
   }
@@ -114,7 +114,7 @@ void Gpio::configInputPullUp() {
   HAL_GPIO_Init(GPIOC, &init_struct);
 }
 
-void Gpio::configInput() {
+void Gpio::configInputNoPull() {
   GPIO_InitTypeDef init_struct = { 0 };
 
   init_struct.Pin = pin_;

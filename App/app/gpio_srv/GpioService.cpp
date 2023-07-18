@@ -33,10 +33,14 @@ GpioService::GpioService() {}
 GpioService::~GpioService() {}
 
 void GpioService::init(app::ctrl::RequestSrvCallback request_service_cb) {
+  gpio0_.config(hal::gpio::GpioMode::InputPullDown);
   gpio1_.config(hal::gpio::GpioMode::InputPullDown);
   gpio2_.config(hal::gpio::GpioMode::InputPullDown);
   gpio3_.config(hal::gpio::GpioMode::InputPullDown);
   gpio4_.config(hal::gpio::GpioMode::InputPullDown);
+  gpio5_.config(hal::gpio::GpioMode::InputPullDown);
+  gpio6_.config(hal::gpio::GpioMode::InputPullDown);
+  gpio7_.config(hal::gpio::GpioMode::InputPullDown);
 
   request_service_cb_ = request_service_cb;
   hal::gpio::GpioIrq::getInstance().registerRequestSrvCallback(request_service_cb);
@@ -57,18 +61,26 @@ int32_t GpioService::postRequest(const uint8_t* data, size_t len) {
   }
 
   if (gpio_msg.which_msg == gpio_proto_GpioMsg_data_msg_tag) {
+    gpio0_.writePin(gpio_msg.msg.data_msg.gpio0);
     gpio1_.writePin(gpio_msg.msg.data_msg.gpio1);
     gpio2_.writePin(gpio_msg.msg.data_msg.gpio2);
     gpio3_.writePin(gpio_msg.msg.data_msg.gpio3);
     gpio4_.writePin(gpio_msg.msg.data_msg.gpio4);
+    gpio5_.writePin(gpio_msg.msg.data_msg.gpio5);
+    gpio6_.writePin(gpio_msg.msg.data_msg.gpio6);
+    gpio7_.writePin(gpio_msg.msg.data_msg.gpio7);
     request_service_cb_(1);
     status = 0;
 
   } else if (gpio_msg.which_msg == gpio_proto_GpioMsg_cfg_msg_tag) {
+    gpio0_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio0));
     gpio1_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio1));
     gpio2_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio2));
     gpio3_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio3));
     gpio4_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio4));
+    gpio5_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio5));
+    gpio6_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio6));
+    gpio7_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio7));
     request_service_cb_(1);
     status = 0;
 
@@ -90,10 +102,14 @@ int32_t GpioService::serviceRequest(uint8_t* data, size_t max_len) {
   gpio_msg.sequence_number = seqence_number_;
   gpio_msg.which_msg = gpio_proto_GpioMsg_data_msg_tag;
 
+  gpio_msg.msg.data_msg.gpio0 = gpio0_.readPin();
   gpio_msg.msg.data_msg.gpio1 = gpio1_.readPin();
   gpio_msg.msg.data_msg.gpio2 = gpio2_.readPin();
   gpio_msg.msg.data_msg.gpio3 = gpio3_.readPin();
   gpio_msg.msg.data_msg.gpio4 = gpio4_.readPin();
+  gpio_msg.msg.data_msg.gpio5 = gpio5_.readPin();
+  gpio_msg.msg.data_msg.gpio6 = gpio6_.readPin();
+  gpio_msg.msg.data_msg.gpio7 = gpio7_.readPin();
 
   DEBUG_INFO("Srv data (seq: %d)", gpio_msg.sequence_number);
 

@@ -57,13 +57,18 @@ Status_t GpioIrq::registerGpio(Gpio* gpio) {
 Status_t GpioIrq::deregisterGpio(Gpio* gpio) {
   Status_t status = Status_t::Ok;
   bool shift = false;
+  bool shared_irq = false;
 
   // Find gpio in array
   for (size_t i = 0; i < registered_; i++) {
     if (gpio_[i] == gpio) {
-      // Deregister gpio
+      // Disable irq
       HAL_NVIC_DisableIRQ(gpio->irq_);
       shift = true;
+
+    } else if (gpio_[i]->irq_ == gpio->irq_) {
+      // Irq is shared between gpios
+      shared_irq = true;
     }
 
     if (shift == true) {
@@ -76,6 +81,10 @@ Status_t GpioIrq::deregisterGpio(Gpio* gpio) {
     gpio_[registered_] = nullptr;
 
     DEBUG_INFO("Deregister gpio(%d) [ok]", gpio->id_)
+  }
+
+  if (shared_irq == true) {
+    HAL_NVIC_EnableIRQ(gpio->irq_);
   }
 
   return status;
