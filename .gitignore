@@ -8,3 +8,7 @@ UsbTest-cppcheck-build-dir/
 .$UartCom.drawio.dtmp
 
 delete_me.txt
+
+.$I2cCom.drawio.bkp
+
+build/

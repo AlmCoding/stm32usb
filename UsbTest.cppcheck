@@ -7,6 +7,10 @@
     <check-unused-templates>true</check-unused-templates>
     <max-ctu-depth>2</max-ctu-depth>
     <max-template-recursion>100</max-template-recursion>
+    <includedir>
+        <dir name="USB_DEVICE/App/"/>
+        <dir name="USB_DEVICE/"/>
+    </includedir>
     <paths>
         <dir name="App"/>
     </paths>

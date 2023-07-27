@@ -1,25 +1,28 @@
-cmake_minimum_required(VERSION 3.7)
-project(tf)
+cmake_minimum_required(VERSION 3.20)
+project(tf C)
 
-set(CMAKE_CXX_STANDARD GNU89)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
-set(SOURCE_FILES
-        demo/simple/test.c
-        demo/simple/TF_Config.h
-        demo/socket_demo/master.c
-        demo/socket_demo/slave.c
-        demo/socket_demo/TF_Config.h
-        demo/multipart_tx/test.c
-        demo/multipart_tx/TF_Config.h
-        demo/demo.c
-        demo/demo.h
-        TinyFrame.c
-        TinyFrame.h
-        TF_Config.example.h
-        demo/utils.c
-        demo/utils.h
-        )
+#message("CMAKE_CURRENT_LIST_DIR = ${CMAKE_CURRENT_LIST_DIR}")
+#message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
+
+set(TF_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/TinyFrame.c
+    ${CMAKE_CURRENT_LIST_DIR}/utilities/payload_builder.c
+    ${CMAKE_CURRENT_LIST_DIR}/utilities/payload_parser.c
+)
 
 include_directories(demo/simple)
 
-add_executable(tf ${SOURCE_FILES})
+add_library(tf STATIC ${TF_SOURCES})
+
+# Set the include directories for the hal_driver library
+target_include_directories(tf PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/.
+)
+
+target_include_directories(tf PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/utilities
+    ${CMAKE_SOURCE_DIR}/Libraries
+)
