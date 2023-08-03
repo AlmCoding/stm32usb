@@ -4,9 +4,6 @@ project(tf C)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-#message("CMAKE_CURRENT_LIST_DIR = ${CMAKE_CURRENT_LIST_DIR}")
-#message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
-
 set(${PROJECT_NAME}_SOURCES 
     ${CMAKE_CURRENT_LIST_DIR}/TinyFrame.c
     ${CMAKE_CURRENT_LIST_DIR}/utilities/payload_builder.c

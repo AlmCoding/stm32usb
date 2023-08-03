@@ -4,9 +4,6 @@ project(exp_app C CXX ASM)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#message("CMAKE_CURRENT_LIST_DIR = ${CMAKE_CURRENT_LIST_DIR}")
-#message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
-
 # Add the source files for the exp_app
 set( ${PROJECT_NAME}_SOURCES 
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp

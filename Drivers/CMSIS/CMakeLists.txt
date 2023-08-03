@@ -4,9 +4,6 @@ project(cmsis_driver C)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-#message("CMAKE_CURRENT_LIST_DIR = ${CMAKE_CURRENT_LIST_DIR}")
-#message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
-
 add_library(cmsis_driver INTERFACE)
 
 target_include_directories(cmsis_driver INTERFACE 

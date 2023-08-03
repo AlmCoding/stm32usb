@@ -4,9 +4,6 @@ project(freertos C ASM)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-#message("CMAKE_CURRENT_LIST_DIR = ${CMAKE_CURRENT_LIST_DIR}")
-#message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
-
 file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.c")
 
 # Create the static library target
@@ -24,4 +21,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     cmsis_driver
     cubemx_core
 )
-
