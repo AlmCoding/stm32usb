@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 
 # Add the source files for the exp_app
-set(EXP_APP_SOURCES
+set( ${PROJECT_NAME}_SOURCES 
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp
     # app 
     ${CMAKE_CURRENT_LIST_DIR}/app/gpio_srv/GpioService.cpp
@@ -42,7 +42,7 @@ set(EXP_APP_SOURCES
 set(EXECUTABLE ${PROJECT_NAME}.out)
 
 # Add the executable target for exp_app
-add_executable(${EXECUTABLE} ${EXP_APP_SOURCES})
+add_executable(${EXECUTABLE} ${${PROJECT_NAME}_SOURCES})
 
 target_include_directories(${EXECUTABLE} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/.
@@ -50,25 +50,20 @@ target_include_directories(${EXECUTABLE} PRIVATE
 )
 
 # Link the libraries with the exp_app target
-target_link_libraries(${EXECUTABLE} PRIVATE 
-    cmsis_driver
-    hal_driver
-    freertos
-    cubemx_core
+target_link_libraries(${EXECUTABLE} PUBLIC 
+    stm
     rtt
     tf
     proto
-    usb_device_lib
-    usb_device
 )
 
-target_link_options(${EXECUTABLE} PRIVATE
+target_link_options(${EXECUTABLE} PUBLIC
     -T${CMAKE_SOURCE_DIR}/STM32F303VCTX_FLASH.ld
     -mcpu=cortex-m4
     -mthumb
     -mfpu=fpv4-sp-d16
     -mfloat-abi=hard
-    -specs=nano.specs
+    --specs=nosys.specs
     -lc
     -lm
     -lnosys

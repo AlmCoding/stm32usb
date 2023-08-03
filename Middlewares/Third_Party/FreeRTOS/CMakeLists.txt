@@ -7,24 +7,20 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 #message("CMAKE_CURRENT_LIST_DIR = ${CMAKE_CURRENT_LIST_DIR}")
 #message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 
-file(GLOB_RECURSE FREERTOS_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.c")
+file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_LIST_DIR}/*.c")
 
 # Create the static library target
-add_library(freertos STATIC ${FREERTOS_SOURCES})
+add_library(${PROJECT_NAME} STATIC ${${PROJECT_NAME}_SOURCES})
 
 # Set the include directories for the usb_device library
-target_include_directories(freertos PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/Source/include
     ${CMAKE_CURRENT_LIST_DIR}/Source/CMSIS_RTOS_V2
     ${CMAKE_CURRENT_LIST_DIR}/Source/portable/GCC/ARM_CM4F
     ${CMAKE_CURRENT_LIST_DIR}/Source/portable/MemMang
 )
 
-#target_include_directories(freertos PRIVATE
-#    ${CMAKE_SOURCE_DIR}/Core/Inc
-#)
-
-target_link_libraries(freertos PRIVATE
+target_link_libraries(${PROJECT_NAME} PRIVATE
     cmsis_driver
     cubemx_core
 )
