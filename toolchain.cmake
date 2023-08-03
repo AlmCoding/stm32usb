@@ -11,7 +11,11 @@ set(CMAKE_CXX_COMPILER "C:/ST/STM32CubeIDE_1.12.0/STM32CubeIDE/plugins/com.st.st
 set(CMAKE_ASM_COMPILER "${CMAKE_C_COMPILER}")
 
 set(ARM_NONE_EABI_OBJDUMP "C:/ST/STM32CubeIDE_1.12.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.win32_1.0.200.202301161003/tools/bin/arm-none-eabi-objdump.exe")
+set(ARM_NONE_EABI_OBJCOPY "C:/ST/STM32CubeIDE_1.12.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.win32_1.0.200.202301161003/tools/bin/arm-none-eabi-objcopy.exe")
+set(ARM_NONE_EABI_SIZE "C:/ST/STM32CubeIDE_1.12.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.win32_1.0.200.202301161003/tools/bin/arm-none-eabi-size.exe")
 #set(ARM_NONE_EABI_OBJDUMP "arm-none-eabi-objdump.exe")
+#set(ARM_NONE_EABI_OBJCOPY "arm-none-eabi-objcopy.exe")
+#set(ARM_NONE_EABI_SIZE "arm-none-eabi-size.exe")
 
 # Skip the compiler test
 set(CMAKE_C_COMPILER_WORKS 1)

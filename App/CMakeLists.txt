@@ -36,7 +36,7 @@ set( ${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/task/uartTask.cpp
 )
 
-set(EXECUTABLE ${PROJECT_NAME}.out)
+set(EXECUTABLE ${PROJECT_NAME}.elf)
 
 # Add the executable target for exp_app
 add_executable(${EXECUTABLE} ${${PROJECT_NAME}_SOURCES})
@@ -77,6 +77,7 @@ add_custom_command(TARGET ${EXECUTABLE}
 # Create hex file
 add_custom_command(TARGET ${EXECUTABLE}
     POST_BUILD
-    COMMAND arm-none-eabi-objcopy.exe -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
-    COMMAND arm-none-eabi-objcopy.exe -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
+    # COMMAND ${ARM_NONE_EABI_SIZE} ${EXECUTABLE}
+    COMMAND ${ARM_NONE_EABI_OBJCOPY} -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
+    COMMAND ${ARM_NONE_EABI_OBJCOPY} -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin
 )
