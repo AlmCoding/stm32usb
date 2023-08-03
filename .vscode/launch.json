@@ -1,0 +1,26 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+      {
+      "type": "cortex-debug",
+      "request": "launch",
+      "name": "Debug J-Link",
+      "cwd": "${workspaceRoot}",
+      "executable": "${workspaceRoot}/build/App/exp_app.elf",
+      "serverpath": "C:/ST/STM32CubeIDE_1.12.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.jlink.win32_2.1.200.202301161003/tools/bin/JLinkGDBServerCL.exe", 
+      "servertype": "jlink",
+      "device": "STM32F303VC",
+      "interface": "jtag",
+      //"serialNumber": "", //If you have more than one J-Link probe, add the serial number here.
+      //"jlinkscript":"${workspaceRoot}/BSP/SEGGER/K66FN2M0_emPower/Setup/Kinetis_K66_Target.js",
+      "runToEntryPoint": "main",
+      //"svdFile": "${workspaceRoot}/SVD/MK66F18.svd" 
+      }
+      ]
+    }
+
+// C:\ST\STM32CubeIDE_1.12.0\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.jlink.win32_2.1.200.202301161003\tools\bin\JLinkGDBServerCL.exe 
+// -port 2331 -s -device STM32F303VC -endian little -speed 8000 -if swd -vd
