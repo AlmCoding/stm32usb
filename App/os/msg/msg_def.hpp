@@ -17,6 +17,7 @@ enum class MsgQueue {
   CtrlTaskQueue,
   UartTaskQueue,
   GpioTaskQueue,
+  I2cTaskQueue,
 };
 
 enum class MsgId {

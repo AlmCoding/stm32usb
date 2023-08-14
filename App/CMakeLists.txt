@@ -33,6 +33,7 @@ set( ${PROJECT_NAME}_SOURCES
     # task
     ${CMAKE_CURRENT_LIST_DIR}/task/ctrlTask.cpp
     ${CMAKE_CURRENT_LIST_DIR}/task/gpioTask.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/task/i2cTask.cpp
     ${CMAKE_CURRENT_LIST_DIR}/task/uartTask.cpp
 )
 

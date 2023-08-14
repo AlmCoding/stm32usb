@@ -16,14 +16,17 @@ namespace os {
 constexpr TickType_t CycleTime_CtrlTask = 1000;  // event driven
 constexpr TickType_t CycleTime_UartTask = 1;
 constexpr TickType_t CycleTime_GpioTask = 1000;  // event driven
+constexpr TickType_t CycleTime_I2cTask = 1;
 
 constexpr size_t StackSize_CtrlTask = 4096;
 constexpr size_t StackSize_UartTask = 2048;
 constexpr size_t StackSize_GpioTask = 2048;
+constexpr size_t StackSize_I2cTask = 2048;
 
 constexpr osPriority_t Priority_CtrlTask = osPriorityNormal;
 constexpr osPriority_t Priority_UartTask = osPriorityNormal;
 constexpr osPriority_t Priority_GpioTask = osPriorityNormal;
+constexpr osPriority_t Priority_I2cTask = osPriorityNormal;
 
 typedef StaticTask_t osStaticThreadDef_t;
 

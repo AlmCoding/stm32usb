@@ -46,6 +46,18 @@ static const osMessageQueueAttr_t gpioTaskQueue_attributes = {
   .mq_size = sizeof(gpioTaskQueueBuffer),
 };
 
+/* Definitions for i2cTaskQueue */
+static osMessageQueueId_t i2cTaskQueueHandle;
+static uint8_t i2cTaskQueueBuffer[QueueSize_I2cTask * sizeof(msg::BaseMsg)];
+static osStaticMessageQDef_t i2cTaskQueueControlBlock;
+static const osMessageQueueAttr_t i2cTaskQueue_attributes = {
+  .name = "i2cTaskQueue",
+  .cb_mem = &i2cTaskQueueControlBlock,
+  .cb_size = sizeof(i2cTaskQueueControlBlock),
+  .mq_mem = &i2cTaskQueueBuffer,
+  .mq_size = sizeof(i2cTaskQueueBuffer),
+};
+
 void createQueues() {
   /* Create the queue(s) */
 
@@ -57,6 +69,9 @@ void createQueues() {
 
   /* creation of gpioTaskQueue */
   gpioTaskQueueHandle = osMessageQueueNew(QueueSize_GpioTask, sizeof(msg::BaseMsg), &gpioTaskQueue_attributes);
+
+  /* creation of i2cTaskQueue */
+  i2cTaskQueueHandle = osMessageQueueNew(QueueSize_I2cTask, sizeof(msg::BaseMsg), &i2cTaskQueue_attributes);
 }
 
 osMessageQueueId_t getQueue(msg::MsgQueue queue) {
@@ -73,6 +88,10 @@ osMessageQueueId_t getQueue(msg::MsgQueue queue) {
     }
     case msg::MsgQueue::GpioTaskQueue: {
       qhdl = gpioTaskQueueHandle;
+      break;
+    }
+    case msg::MsgQueue::I2cTaskQueue: {
+      qhdl = i2cTaskQueueHandle;
       break;
     }
     default: {

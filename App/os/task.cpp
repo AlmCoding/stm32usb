@@ -9,6 +9,7 @@
 
 #include "task/ctrlTask.hpp"
 #include "task/gpioTask.hpp"
+#include "task/i2cTask.hpp"
 #include "task/uartTask.hpp"
 
 namespace os {
@@ -52,6 +53,19 @@ static const osThreadAttr_t gpioTask_attributes = {
   .priority = Priority_GpioTask,
 };
 
+/* Definitions for i2cTask */
+static osThreadId_t i2cTaskHandle;
+static uint8_t i2cTaskBuffer[StackSize_I2cTask];
+static osStaticThreadDef_t i2cTaskControlBlock;
+static const osThreadAttr_t i2cTask_attributes = {
+  .name = "i2cTask",
+  .cb_mem = &i2cTaskControlBlock,
+  .cb_size = sizeof(i2cTaskControlBlock),
+  .stack_mem = &i2cTaskBuffer[0],
+  .stack_size = sizeof(i2cTaskBuffer),
+  .priority = Priority_I2cTask,
+};
+
 void createTasks() {
   /* Create the thread(s) */
 
@@ -63,6 +77,9 @@ void createTasks() {
 
   /* creation of gpioTask */
   gpioTaskHandle = osThreadNew(task::gpio::gpioTask, NULL, &gpioTask_attributes);
+
+  /* creation of i2cTask */
+  i2cTaskHandle = osThreadNew(task::i2c::i2cTask, NULL, &i2cTask_attributes);
 }
 
 }  // namespace os
