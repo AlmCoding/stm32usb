@@ -9,6 +9,7 @@ set( ${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp
     # app 
     ${CMAKE_CURRENT_LIST_DIR}/app/gpio_srv/GpioService.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/app/i2c_srv/I2cService.cpp
     ${CMAKE_CURRENT_LIST_DIR}/app/uart_srv/UartService.cpp
     # driver
     ${CMAKE_CURRENT_LIST_DIR}/driver/tf/FrameDriver.cpp 
@@ -18,6 +19,7 @@ set( ${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/hal/gpio/GpioIrq.cpp 
     ${CMAKE_CURRENT_LIST_DIR}/hal/uart/Uart.cpp 
     ${CMAKE_CURRENT_LIST_DIR}/hal/uart/UartIrq.cpp 
+    ${CMAKE_CURRENT_LIST_DIR}/hal/i2c/i2cMaster.cpp 
     # os
     ${CMAKE_CURRENT_LIST_DIR}/os/builder.cpp 
     ${CMAKE_CURRENT_LIST_DIR}/os/hook.cpp 

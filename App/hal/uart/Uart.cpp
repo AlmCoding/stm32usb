@@ -1,7 +1,7 @@
 /*
  * Uart.cpp
  *
- *  Created on: 6 May 2023
+ *  Created on: May 6, 2023
  *      Author: Alexander L.
  */
 

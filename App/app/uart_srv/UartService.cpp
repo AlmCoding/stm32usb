@@ -66,7 +66,7 @@ int32_t UartService::postRequest(const uint8_t* data, size_t len) {
     }
 
   } else if (uart_msg.which_msg == uart_proto_UartMsg_cfg_msg_tag) {
-    if (uart0_.config(uart_msg.msg.cfg_msg.baudrate) == Status_t::Ok) {
+    if (uart0_.config(uart_msg.msg.cfg_msg.baud_rate) == Status_t::Ok) {
       status = 0;
     }
   }
