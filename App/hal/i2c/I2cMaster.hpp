@@ -30,6 +30,11 @@ typedef struct {
 } MasterRequest;
 
 class I2cMaster {
+  typedef struct {
+    size_t space1;
+    size_t space2;
+  } FreeSpace;
+
  public:
   I2cMaster(I2C_HandleTypeDef* i2c_handle);
   virtual ~I2cMaster();
@@ -42,6 +47,9 @@ class I2cMaster {
   Status_t serviceRequest();
 
  private:
+  void getFreeSpace(FreeSpace* free);
+  int32_t allocateBufferSpace(size_t size);
+
   I2C_HandleTypeDef* i2c_handle_;
   osMessageQueueId_t queue_handle_;
 
@@ -56,10 +64,8 @@ class I2cMaster {
   };
 
   uint8_t data_buffer_[DataBufferSize];
-  size_t head_start = 0;
-  size_t head_end = 0;
-  size_t tail_start = 0;
-  size_t tail_end = sizeof(data_buffer_);
+  size_t data_start_ = 0;
+  size_t data_end_ = 0;
 
   uint32_t seqence_number_ = 0;
 

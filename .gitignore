@@ -12,3 +12,5 @@ delete_me.txt
 .$I2cCom.drawio.bkp
 
 build/
+
+*.dtmp
