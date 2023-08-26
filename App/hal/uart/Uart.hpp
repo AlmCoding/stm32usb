@@ -14,25 +14,27 @@
 namespace hal::uart {
 
 #define START_TX_IMMEDIATELY false
-constexpr size_t RxBufferSize = 64;
-constexpr size_t TxBufferSize = 64 + 1;
-
-enum class ServiceRequest {
-  None = 0,
-  SendRxData,
-  SendStatus,
-};
-
-typedef struct {
-  bool rx_overflow;
-  bool tx_overflow;
-  bool tx_complete;
-  size_t rx_space;
-  size_t tx_space;
-} UartStatus;
 
 class Uart {
+ private:
+  constexpr static size_t RxBufferSize = 64;
+  constexpr static size_t TxBufferSize = 64 + 1;
+
  public:
+  enum class ServiceInfo {
+    None = 0,
+    SendRxData,
+    SendStatus,
+  };
+
+  typedef struct {
+    bool rx_overflow;
+    bool tx_overflow;
+    bool tx_complete;
+    size_t rx_space;
+    size_t tx_space;
+  } StatusInfo;
+
   Uart(UART_HandleTypeDef* uart_handle);
   virtual ~Uart();
 
@@ -41,9 +43,10 @@ class Uart {
   uint32_t poll();
 
   Status_t scheduleTx(const uint8_t* data, size_t len, uint32_t seq_num);
-  uint32_t getServiceRequest(ServiceRequest* req);
+  uint32_t getServiceInfo(ServiceInfo* req);
+
   size_t serviceRx(uint8_t* data, size_t max_len);
-  void serviceStatus(UartStatus* status);
+  void serviceStatus(StatusInfo* status);
 
  private:
   Status_t stopDma();

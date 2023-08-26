@@ -13,9 +13,10 @@
 
 namespace hal::uart {
 
-constexpr size_t UartCount = 2;
-
 class UartIrq {
+ private:
+  constexpr static size_t UartCount = 2;
+
  public:
   // Deleted copy constructor and assignment operator to enforce singleton
   UartIrq(const UartIrq&) = delete;

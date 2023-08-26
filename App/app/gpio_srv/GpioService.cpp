@@ -17,9 +17,9 @@
 
 #define DEBUG_ENABLE_GPIO_SERVICE
 #ifdef DEBUG_ENABLE_GPIO_SERVICE
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][gpioSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][gpioSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][gpioSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][GpioSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][GpioSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][GpioSrv]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)

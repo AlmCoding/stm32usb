@@ -16,9 +16,9 @@
 
 #define DEBUG_ENABLE_UART_SERVICE
 #ifdef DEBUG_ENABLE_UART_SERVICE
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][i2cSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][i2cSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][i2cSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][I2cSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][I2cSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][I2cSrv]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)
@@ -37,7 +37,9 @@ void I2cService::init(app::ctrl::RequestSrvCallback request_service_cb) {
   request_service_cb_ = request_service_cb;
 }
 
-void I2cService::poll() {}
+void I2cService::poll() {
+  i2cMaster0_.poll();
+}
 
 int32_t I2cService::postRequest(const uint8_t* data, size_t len) {
   int32_t status = -1;
@@ -54,15 +56,15 @@ int32_t I2cService::postRequest(const uint8_t* data, size_t len) {
   }
 
   if (i2c_msg.which_msg == i2c_proto_I2cMsg_master_tag) {
-    hal::i2c::MasterRequest request;
+    hal::i2c::I2cMaster::Request request;
 
     request.request_id = static_cast<uint16_t>(i2c_msg.msg.master.request_id);
     request.slave_addr = static_cast<uint16_t>(i2c_msg.msg.master.slave_addr);
     request.write_size = static_cast<uint16_t>(i2c_msg.msg.master.data.size);
     request.read_size = static_cast<uint16_t>(i2c_msg.msg.master.read_size);
-    request.completed = false;
 
-    if (i2cMaster0_.scheduleRequest(&request, static_cast<uint8_t*>(i2c_msg.msg.master.data.bytes)) == Status_t::Ok) {
+    if (i2cMaster0_.scheduleRequest(&request, static_cast<uint8_t*>(i2c_msg.msg.master.data.bytes),
+                                    i2c_msg.sequence_number) == Status_t::Ok) {
       status = 0;
     }
 

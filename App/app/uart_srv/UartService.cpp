@@ -16,9 +16,9 @@
 
 #define DEBUG_ENABLE_UART_SERVICE
 #ifdef DEBUG_ENABLE_UART_SERVICE
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][uartSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][uartSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][uartSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][UartSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][UartSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][UartSrv]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)
@@ -80,12 +80,12 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_len) {
   /* Create a stream that will write to our buffer. */
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_len);
 
-  hal::uart::ServiceRequest req;
-  uart_msg.sequence_number = uart0_.getServiceRequest(&req);
+  hal::uart::Uart::ServiceInfo req;
+  uart_msg.sequence_number = uart0_.getServiceInfo(&req);
 
-  if (req == hal::uart::ServiceRequest::SendRxData) {
+  if (req == hal::uart::Uart::ServiceInfo::SendRxData) {
     serviceDataRequest(&uart_msg, max_len);
-  } else if (req == hal::uart::ServiceRequest::SendStatus) {
+  } else if (req == hal::uart::Uart::ServiceInfo::SendStatus) {
     serviceStatusRequest(&uart_msg, max_len);
   }
 
@@ -108,7 +108,7 @@ void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_len) {
 }
 
 void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_size*/) {
-  hal::uart::UartStatus status;
+  hal::uart::Uart::StatusInfo status;
   uart0_.serviceStatus(&status);
 
   msg->which_msg = uart_proto_UartMsg_status_tag;

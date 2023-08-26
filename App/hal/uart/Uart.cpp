@@ -289,16 +289,16 @@ void Uart::rxCpltCallback() {
   os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
 }
 
-uint32_t Uart::getServiceRequest(ServiceRequest* req) {
-  *req = ServiceRequest::None;
+uint32_t Uart::getServiceInfo(ServiceInfo* req) {
+  *req = ServiceInfo::None;
 
   if (send_data_msg_ == true) {
     send_data_msg_ = false;
-    *req = ServiceRequest::SendRxData;
+    *req = ServiceInfo::SendRxData;
 
   } else if (send_status_msg_ == true) {
     send_status_msg_ = false;
-    *req = ServiceRequest::SendStatus;
+    *req = ServiceInfo::SendStatus;
   }
 
   return seqence_number_;
@@ -336,7 +336,7 @@ size_t Uart::serviceRx(uint8_t* data, size_t max_len) {
   return rx_cnt;
 }
 
-void Uart::serviceStatus(UartStatus* status) {
+void Uart::serviceStatus(StatusInfo* status) {
   status->tx_complete = tx_complete_;
   status->tx_overflow = tx_overflow_;
   status->tx_space = getFreeTxSpace(seqence_number_);
