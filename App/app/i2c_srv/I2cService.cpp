@@ -53,24 +53,23 @@ int32_t I2cService::postRequest(const uint8_t* data, size_t len) {
     return -1;
   }
 
-  if (i2c_msg.which_msg == i2c_proto_I2cMsg_master_msg_tag) {
+  if (i2c_msg.which_msg == i2c_proto_I2cMsg_master_tag) {
     hal::i2c::MasterRequest request;
 
-    request.request_id = static_cast<uint16_t>(i2c_msg.msg.master_msg.request_id);
-    request.slave_addr = static_cast<uint16_t>(i2c_msg.msg.master_msg.slave_addr);
-    request.write_size = static_cast<uint16_t>(i2c_msg.msg.master_msg.data.size);
-    request.read_size = static_cast<uint16_t>(i2c_msg.msg.master_msg.read_size);
+    request.request_id = static_cast<uint16_t>(i2c_msg.msg.master.request_id);
+    request.slave_addr = static_cast<uint16_t>(i2c_msg.msg.master.slave_addr);
+    request.write_size = static_cast<uint16_t>(i2c_msg.msg.master.data.size);
+    request.read_size = static_cast<uint16_t>(i2c_msg.msg.master.read_size);
     request.completed = false;
 
-    if (i2cMaster0_.scheduleRequest(&request, static_cast<uint8_t*>(i2c_msg.msg.master_msg.data.bytes)) ==
-        Status_t::Ok) {
+    if (i2cMaster0_.scheduleRequest(&request, static_cast<uint8_t*>(i2c_msg.msg.master.data.bytes)) == Status_t::Ok) {
       status = 0;
     }
 
-  } else if (i2c_msg.which_msg == i2c_proto_I2cMsg_slave_msg_tag) {
+  } else if (i2c_msg.which_msg == i2c_proto_I2cMsg_slave_tag) {
     status = 0;
 
-  } else if (i2c_msg.which_msg == i2c_proto_I2cMsg_cfg_msg_tag) {
+  } else if (i2c_msg.which_msg == i2c_proto_I2cMsg_cfg_tag) {
     status = 0;
   }
 

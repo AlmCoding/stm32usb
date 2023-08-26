@@ -60,27 +60,27 @@ int32_t GpioService::postRequest(const uint8_t* data, size_t len) {
     return -1;
   }
 
-  if (gpio_msg.which_msg == gpio_proto_GpioMsg_data_msg_tag) {
-    gpio0_.writePin(gpio_msg.msg.data_msg.gpio0);
-    gpio1_.writePin(gpio_msg.msg.data_msg.gpio1);
-    gpio2_.writePin(gpio_msg.msg.data_msg.gpio2);
-    gpio3_.writePin(gpio_msg.msg.data_msg.gpio3);
-    gpio4_.writePin(gpio_msg.msg.data_msg.gpio4);
-    gpio5_.writePin(gpio_msg.msg.data_msg.gpio5);
-    gpio6_.writePin(gpio_msg.msg.data_msg.gpio6);
-    gpio7_.writePin(gpio_msg.msg.data_msg.gpio7);
+  if (gpio_msg.which_msg == gpio_proto_GpioMsg_data_tag) {
+    gpio0_.writePin(gpio_msg.msg.data.gpio0);
+    gpio1_.writePin(gpio_msg.msg.data.gpio1);
+    gpio2_.writePin(gpio_msg.msg.data.gpio2);
+    gpio3_.writePin(gpio_msg.msg.data.gpio3);
+    gpio4_.writePin(gpio_msg.msg.data.gpio4);
+    gpio5_.writePin(gpio_msg.msg.data.gpio5);
+    gpio6_.writePin(gpio_msg.msg.data.gpio6);
+    gpio7_.writePin(gpio_msg.msg.data.gpio7);
     request_service_cb_(1);
     status = 0;
 
-  } else if (gpio_msg.which_msg == gpio_proto_GpioMsg_cfg_msg_tag) {
-    gpio0_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio0));
-    gpio1_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio1));
-    gpio2_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio2));
-    gpio3_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio3));
-    gpio4_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio4));
-    gpio5_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio5));
-    gpio6_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio6));
-    gpio7_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg_msg.gpio7));
+  } else if (gpio_msg.which_msg == gpio_proto_GpioMsg_cfg_tag) {
+    gpio0_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio0));
+    gpio1_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio1));
+    gpio2_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio2));
+    gpio3_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio3));
+    gpio4_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio4));
+    gpio5_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio5));
+    gpio6_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio6));
+    gpio7_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio7));
     request_service_cb_(1);
     status = 0;
 
@@ -100,16 +100,16 @@ int32_t GpioService::serviceRequest(uint8_t* data, size_t max_len) {
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_len);
 
   gpio_msg.sequence_number = seqence_number_;
-  gpio_msg.which_msg = gpio_proto_GpioMsg_data_msg_tag;
+  gpio_msg.which_msg = gpio_proto_GpioMsg_data_tag;
 
-  gpio_msg.msg.data_msg.gpio0 = gpio0_.readPin();
-  gpio_msg.msg.data_msg.gpio1 = gpio1_.readPin();
-  gpio_msg.msg.data_msg.gpio2 = gpio2_.readPin();
-  gpio_msg.msg.data_msg.gpio3 = gpio3_.readPin();
-  gpio_msg.msg.data_msg.gpio4 = gpio4_.readPin();
-  gpio_msg.msg.data_msg.gpio5 = gpio5_.readPin();
-  gpio_msg.msg.data_msg.gpio6 = gpio6_.readPin();
-  gpio_msg.msg.data_msg.gpio7 = gpio7_.readPin();
+  gpio_msg.msg.data.gpio0 = gpio0_.readPin();
+  gpio_msg.msg.data.gpio1 = gpio1_.readPin();
+  gpio_msg.msg.data.gpio2 = gpio2_.readPin();
+  gpio_msg.msg.data.gpio3 = gpio3_.readPin();
+  gpio_msg.msg.data.gpio4 = gpio4_.readPin();
+  gpio_msg.msg.data.gpio5 = gpio5_.readPin();
+  gpio_msg.msg.data.gpio6 = gpio6_.readPin();
+  gpio_msg.msg.data.gpio7 = gpio7_.readPin();
 
   DEBUG_INFO("Srv data (seq: %d)", gpio_msg.sequence_number);
 

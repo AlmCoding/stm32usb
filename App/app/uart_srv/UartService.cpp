@@ -59,14 +59,14 @@ int32_t UartService::postRequest(const uint8_t* data, size_t len) {
     return -1;
   }
 
-  if (uart_msg.which_msg == uart_proto_UartMsg_data_msg_tag) {
-    if (uart0_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data_msg.data.bytes), uart_msg.msg.data_msg.data.size,
+  if (uart_msg.which_msg == uart_proto_UartMsg_data_tag) {
+    if (uart0_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data.data.bytes), uart_msg.msg.data.data.size,
                           uart_msg.sequence_number) == Status_t::Ok) {
       status = 0;
     }
 
-  } else if (uart_msg.which_msg == uart_proto_UartMsg_cfg_msg_tag) {
-    if (uart0_.config(uart_msg.msg.cfg_msg.baud_rate) == Status_t::Ok) {
+  } else if (uart_msg.which_msg == uart_proto_UartMsg_cfg_tag) {
+    if (uart0_.config(uart_msg.msg.cfg.baud_rate) == Status_t::Ok) {
       status = 0;
     }
   }
@@ -99,10 +99,10 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_len) {
 }
 
 void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_len) {
-  msg->which_msg = uart_proto_UartMsg_data_msg_tag;
+  msg->which_msg = uart_proto_UartMsg_data_tag;
 
-  size_t data_size = uart0_.serviceRx(msg->msg.data_msg.data.bytes, max_len);
-  msg->msg.data_msg.data.size = static_cast<uint16_t>(data_size);
+  size_t data_size = uart0_.serviceRx(msg->msg.data.data.bytes, max_len);
+  msg->msg.data.data.size = static_cast<uint16_t>(data_size);
 
   DEBUG_INFO("Srv data (len: %d, seq: %d)", data_size, msg->sequence_number);
 }
@@ -111,13 +111,13 @@ void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_siz
   hal::uart::UartStatus status;
   uart0_.serviceStatus(&status);
 
-  msg->which_msg = uart_proto_UartMsg_status_msg_tag;
+  msg->which_msg = uart_proto_UartMsg_status_tag;
 
-  msg->msg.status_msg.rx_overflow = status.rx_overflow;
-  msg->msg.status_msg.tx_overflow = status.tx_overflow;
-  msg->msg.status_msg.tx_complete = status.tx_complete;
-  msg->msg.status_msg.rx_space = status.rx_space;
-  msg->msg.status_msg.tx_space = status.tx_space;
+  msg->msg.status.rx_overflow = status.rx_overflow;
+  msg->msg.status.tx_overflow = status.tx_overflow;
+  msg->msg.status.tx_complete = status.tx_complete;
+  msg->msg.status.rx_space = status.rx_space;
+  msg->msg.status.tx_space = status.tx_space;
 
   DEBUG_INFO("Srv status (seq: %d)", msg->sequence_number);
 }
