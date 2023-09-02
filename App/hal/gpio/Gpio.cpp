@@ -20,16 +20,16 @@
 #define DEBUG_ERROR(...)
 #endif
 
-#define IS_OUTPUT_MODE(x) ((x == GpioMode::OutputPushPull) || (x == GpioMode::OutputOpenDrain))
+#define IS_OUTPUT_MODE(x) ((x == Gpio::Mode::OutputPushPull) || (x == Gpio::Mode::OutputOpenDrain))
 
 namespace hal::gpio {
 
-Gpio::Gpio(GPIO_TypeDef* port, uint16_t pin, IRQn_Type irq, GpioId id)
+Gpio::Gpio(GPIO_TypeDef* port, uint16_t pin, IRQn_Type irq, Id id)
     : port_{ port }, pin_{ pin }, irq_{ irq }, id_{ id } {}
 
 Gpio::~Gpio() {}
 
-Status_t Gpio::config(GpioMode mode) {
+Status_t Gpio::config(Mode mode) {
   Status_t status = Status_t::Ok;
 
   if (mode_ == mode) {
@@ -37,23 +37,23 @@ Status_t Gpio::config(GpioMode mode) {
   }
 
   switch (mode) {
-    case GpioMode::InputPullDown: {
+    case Mode::InputPullDown: {
       configInputPullDown();
       break;
     }
-    case GpioMode::InputPullUp: {
+    case Mode::InputPullUp: {
       configInputPullUp();
       break;
     }
-    case GpioMode::InputNoPull: {
+    case Mode::InputNoPull: {
       configInputNoPull();
       break;
     }
-    case GpioMode::OutputPushPull: {
+    case Mode::OutputPushPull: {
       configOutputPushPull();
       break;
     }
-    case GpioMode::OutputOpenDrain: {
+    case Mode::OutputOpenDrain: {
       configOutputOpenDrain();
       break;
     }

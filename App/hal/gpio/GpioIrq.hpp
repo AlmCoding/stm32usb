@@ -34,7 +34,7 @@ class GpioIrq {
   GpioIrq();
 
   app::ctrl::RequestSrvCallback request_service_cb_ = nullptr;
-  Gpio* gpio_[static_cast<size_t>(GpioId::GpioCount)] = { nullptr };
+  Gpio* gpio_[static_cast<size_t>(Gpio::Id::GpioCount)] = { nullptr };
   size_t registered_ = 0;
 };
 

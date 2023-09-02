@@ -33,14 +33,14 @@ GpioService::GpioService() {}
 GpioService::~GpioService() {}
 
 void GpioService::init(app::ctrl::RequestSrvCallback request_service_cb) {
-  gpio0_.config(hal::gpio::GpioMode::InputPullDown);
-  gpio1_.config(hal::gpio::GpioMode::InputPullDown);
-  gpio2_.config(hal::gpio::GpioMode::InputPullDown);
-  gpio3_.config(hal::gpio::GpioMode::InputPullDown);
-  gpio4_.config(hal::gpio::GpioMode::InputPullDown);
-  gpio5_.config(hal::gpio::GpioMode::InputPullDown);
-  gpio6_.config(hal::gpio::GpioMode::InputPullDown);
-  gpio7_.config(hal::gpio::GpioMode::InputPullDown);
+  gpio0_.config(hal::gpio::Gpio::Mode::InputPullDown);
+  gpio1_.config(hal::gpio::Gpio::Mode::InputPullDown);
+  gpio2_.config(hal::gpio::Gpio::Mode::InputPullDown);
+  gpio3_.config(hal::gpio::Gpio::Mode::InputPullDown);
+  gpio4_.config(hal::gpio::Gpio::Mode::InputPullDown);
+  gpio5_.config(hal::gpio::Gpio::Mode::InputPullDown);
+  gpio6_.config(hal::gpio::Gpio::Mode::InputPullDown);
+  gpio7_.config(hal::gpio::Gpio::Mode::InputPullDown);
 
   request_service_cb_ = request_service_cb;
   hal::gpio::GpioIrq::getInstance().registerRequestSrvCallback(request_service_cb);
@@ -73,14 +73,14 @@ int32_t GpioService::postRequest(const uint8_t* data, size_t len) {
     status = 0;
 
   } else if (gpio_msg.which_msg == gpio_proto_GpioMsg_cfg_tag) {
-    gpio0_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio0));
-    gpio1_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio1));
-    gpio2_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio2));
-    gpio3_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio3));
-    gpio4_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio4));
-    gpio5_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio5));
-    gpio6_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio6));
-    gpio7_.config(static_cast<hal::gpio::GpioMode>(gpio_msg.msg.cfg.gpio7));
+    gpio0_.config(static_cast<hal::gpio::Gpio::Mode>(gpio_msg.msg.cfg.gpio0));
+    gpio1_.config(static_cast<hal::gpio::Gpio::Mode>(gpio_msg.msg.cfg.gpio1));
+    gpio2_.config(static_cast<hal::gpio::Gpio::Mode>(gpio_msg.msg.cfg.gpio2));
+    gpio3_.config(static_cast<hal::gpio::Gpio::Mode>(gpio_msg.msg.cfg.gpio3));
+    gpio4_.config(static_cast<hal::gpio::Gpio::Mode>(gpio_msg.msg.cfg.gpio4));
+    gpio5_.config(static_cast<hal::gpio::Gpio::Mode>(gpio_msg.msg.cfg.gpio5));
+    gpio6_.config(static_cast<hal::gpio::Gpio::Mode>(gpio_msg.msg.cfg.gpio6));
+    gpio7_.config(static_cast<hal::gpio::Gpio::Mode>(gpio_msg.msg.cfg.gpio7));
     request_service_cb_(1);
     status = 0;
 

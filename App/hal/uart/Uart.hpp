@@ -11,9 +11,9 @@
 #include "common.hpp"
 #include "main.h"
 
-namespace hal::uart {
+#define START_UART_REQUEST_IMMEDIATELY false
 
-#define START_TX_IMMEDIATELY false
+namespace hal::uart {
 
 class Uart {
  private:
@@ -21,11 +21,7 @@ class Uart {
   constexpr static size_t TxBufferSize = 64 + 1;
 
  public:
-  enum class ServiceInfo {
-    None = 0,
-    SendRxData,
-    SendStatus,
-  };
+  enum class ServiceInfo { None = 0, SendRxData, SendStatus };
 
   typedef struct {
     bool rx_overflow;

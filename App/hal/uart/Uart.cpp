@@ -78,7 +78,7 @@ Status_t Uart::init() {
 uint32_t Uart::poll() {
   uint32_t service_requests = 0;
 
-#if (START_TX_IMMEDIATELY == false)
+#if (START_UART_REQUEST_IMMEDIATELY == false)
   startTx();
 #endif
 
@@ -195,7 +195,7 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t len, uint32_t seq_num) {
     tx_overflow_ = false;
     status = Status_t::Ok;
 
-#if (START_TX_IMMEDIATELY == true)
+#if (START_UART_REQUEST_IMMEDIATELY == true)
     startTx();
 #else
     // Trigger uart task for fast transmit start

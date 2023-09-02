@@ -12,10 +12,11 @@
 #include "common.hpp"
 #include "main.h"
 
+#define START_I2_REQUEST_IMMEDIATELY false
+
 namespace hal::i2c {
 
 typedef StaticQueue_t osStaticMessageQDef_t;
-#define START_TX_IMMEDIATELY false
 
 class I2cMaster {
  private:
@@ -28,13 +29,33 @@ class I2cMaster {
   } Space;
 
  public:
+  enum class RequestType { Write = 0, Read };
+  enum class AddrSize { ZeroBytes = 0, OneByte, TwoBytes };
+
   typedef struct {
     uint16_t request_id;
     uint16_t slave_addr;
     uint16_t write_size;
-    uint16_t read_size;
     size_t write_start;
+    bool send_stop;
+  } WriteRequest;
+
+  typedef struct {
+    uint16_t request_id;
+    uint16_t slave_addr;
+    uint16_t reg_addr;
+    AddrSize addr_size;
+    uint16_t read_size;
     size_t read_start;
+    bool send_stop;
+  } ReadRequest;
+
+  typedef struct {
+    RequestType type;
+    union {
+      WriteRequest write;
+      ReadRequest read;
+    };
   } Request;
 
   I2cMaster(I2C_HandleTypeDef* i2c_handle);

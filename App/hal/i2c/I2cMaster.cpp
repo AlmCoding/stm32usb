@@ -43,7 +43,7 @@ Status_t I2cMaster::init() {
 uint32_t I2cMaster::poll() {
   uint32_t service_requests = 0;
 
-#if (START_TX_IMMEDIATELY == false)
+#if (START_I2_REQUEST_IMMEDIATELY == false)
   // startTx();
 #endif
 
@@ -61,6 +61,7 @@ uint32_t I2cMaster::poll() {
 
 Status_t I2cMaster::scheduleRequest(Request* request, uint8_t* write_data, uint32_t seq_num) {
   Status_t status = Status_t::Error;
+  int32_t start;
 
   if (osMessageQueueGetSpace(pending_queue_) == 0) {
     DEBUG_ERROR("Queue overflow (seq: %d)", seq_num);
@@ -74,25 +75,23 @@ Status_t I2cMaster::scheduleRequest(Request* request, uint8_t* write_data, uint3
     data_end_ = 0;
   }
 
-  // Place write data
-  auto start = allocateBufferSpace(request->write_size);
-  if (start >= 0) {
-    request->write_start = start;
-    std::memcpy(data_buffer_ + request->write_start, write_data, request->write_size);
+  if (request->type == RequestType::Write) {
+    // Write request
+    start = allocateBufferSpace(request->write.write_size);
+    if (start >= 0) {
+      request->write.write_start = start;
+      std::memcpy(data_buffer_ + start, write_data, request->write.write_size);
+    }
 
   } else {
-    DEBUG_ERROR("Buffer overflow (seq: %d)", seq_num);
-    buffer_overflow_ = true;
-    send_status_msg_ = true;
-    return Status_t::Error;
+    // Read request
+    start = allocateBufferSpace(request->read.read_size);
+    if (start >= 0) {
+      request->read.read_start = start;
+    }
   }
 
-  // Allocate read space
-  start = allocateBufferSpace(request->read_size);
-  if (start >= 0) {
-    request->read_start = start;
-
-  } else {
+  if (start == -1) {
     DEBUG_ERROR("Buffer overflow (seq: %d)", seq_num);
     buffer_overflow_ = true;
     send_status_msg_ = true;
@@ -103,7 +102,7 @@ Status_t I2cMaster::scheduleRequest(Request* request, uint8_t* write_data, uint3
   if (osMessageQueuePut(pending_queue_, request, 0, 0) == osOK) {
     status = Status_t::Ok;
 
-#if (START_TX_IMMEDIATELY == true)
+#if (START_I2_REQUEST_IMMEDIATELY == true)
     // startTx();
 #else
     // Trigger i2c task for fast transmit start
