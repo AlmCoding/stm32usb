@@ -63,7 +63,7 @@ Status_t Gpio::config(Mode mode) {
     }
   }
 
-  DEBUG_INFO("Cfg gpio(%d), mode: %d => %d", id_, mode_, mode);
+  DEBUG_INFO("Cfg Gpio(%d), mode: %d => %d", id_, mode_, mode);
 
   if (IS_OUTPUT_MODE(mode) == true) {
     GpioIrq::getInstance().deregisterGpio(this);
@@ -78,7 +78,7 @@ Status_t Gpio::config(Mode mode) {
 bool Gpio::readPin() {
   if ((in_interrupt_read_ == false) || (IS_OUTPUT_MODE(mode_) == true)) {
     auto state = HAL_GPIO_ReadPin(port_, pin_);
-    DEBUG_INFO("Read gpio(%d): %d", id_, state);
+    DEBUG_INFO("Read Gpio(%d): %d", id_, state);
     return static_cast<bool>(state);
 
   } else {
@@ -89,7 +89,7 @@ bool Gpio::readPin() {
 
 void Gpio::writePin(bool state) {
   if (IS_OUTPUT_MODE(mode_) == true) {
-    DEBUG_INFO("Write gpio(%d): %d", id_, state);
+    DEBUG_INFO("Write Gpio(%d): %d", id_, state);
     HAL_GPIO_WritePin(port_, pin_, static_cast<GPIO_PinState>(state));
   }
 }
@@ -148,7 +148,7 @@ void Gpio::configOutputOpenDrain() {
 
 void Gpio::extiCb() {
   auto state = HAL_GPIO_ReadPin(port_, pin_);
-  DEBUG_INFO("Read gpio(%d): %d [exti]", id_, state);
+  DEBUG_INFO("Read Gpio(%d): %d [exti]", id_, state);
   in_interrupt_state_ = static_cast<bool>(state);
   in_interrupt_read_ = true;
 }

@@ -32,7 +32,7 @@ I2cService::I2cService() {}
 I2cService::~I2cService() {}
 
 void I2cService::init(app::ctrl::RequestSrvCallback request_service_cb) {
-  // i2cMaster0_.config(DefaultClockRate);
+  i2cMaster0_.config(/*DefaultClockRate*/);
 
   request_service_cb_ = request_service_cb;
 }
@@ -67,6 +67,9 @@ int32_t I2cService::postRequest(const uint8_t* data, size_t len) {
 
   } else if (i2c_msg.which_msg == i2c_proto_I2cMsg_cfg_tag) {
     status = 0;
+
+  } else {
+    DEBUG_ERROR("Invalid request message!");
   }
 
   return status;

@@ -28,8 +28,8 @@ class UartIrq {
   }
 
   Status_t registerUart(Uart* uart);
-  void txCpltCallback(UART_HandleTypeDef* huart);
-  void rxCpltCallback(UART_HandleTypeDef* huart);
+  void txCpltCb(UART_HandleTypeDef* huart);
+  void rxCpltCb(UART_HandleTypeDef* huart);
 
  private:
   UartIrq();

@@ -71,8 +71,11 @@ class I2cMaster {
  private:
   void getFreeSpace(Space* free);
   int32_t allocateBufferSpace(size_t size);
-  Status_t startTxRx();
-  Status_t startWriteRead();
+  Status_t startRequest();
+  Status_t startWrite();
+  Status_t startRead();
+  void writeCpltCb();
+  void readCpltCb();
 
   I2C_HandleTypeDef* i2c_handle_;
 
@@ -105,14 +108,15 @@ class I2cMaster {
   bool queue_overflow_ = false;
   bool buffer_overflow_ = false;
 
-  Request this_request_;
-  bool this_complete_ = true;
+  Request request_;
+  uint32_t xfer_options_ = I2C_FIRST_AND_LAST_FRAME;
+  bool request_complete_ = true;
 
   bool send_data_msg_ = false;
   bool send_status_msg_ = false;
   uint32_t seqence_number_ = 0;
 
-  // friend class I2cIrq;
+  friend class I2cIrq;
 };
 
 }  // namespace hal::i2c

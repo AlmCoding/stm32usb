@@ -26,6 +26,11 @@ UartIrq::UartIrq() {}
 Status_t UartIrq::registerUart(Uart* uart) {
   Status_t status;
 
+  if (uart == nullptr) {
+    DEBUG_ERROR("Invalid Uart register attempt")
+    return Status_t::Error;
+  }
+
   // Check if already registered
   for (size_t i = 0; i < registered_; i++) {
     if (uart_[i] == uart) {
@@ -33,33 +38,33 @@ Status_t UartIrq::registerUart(Uart* uart) {
     }
   }
 
-  if ((uart != nullptr) && (registered_ < sizeof(uart_))) {
-    DEBUG_INFO("Register uart(%d) [ok]", registered_)
+  if (registered_ < UartCount) {
+    DEBUG_INFO("Register Uart(%d) [ok]", registered_)
     uart_[registered_] = uart;
     registered_++;
     status = Status_t::Ok;
 
   } else {
-    DEBUG_INFO("Register uart(%d) [failed]", registered_)
+    DEBUG_ERROR("Register Uart(%d) [failed]", registered_)
     status = Status_t::Error;
   }
 
   return status;
 }
 
-void UartIrq::txCpltCallback(UART_HandleTypeDef* huart) {
+void UartIrq::txCpltCb(UART_HandleTypeDef* huart) {
   for (size_t i = 0; i < registered_; i++) {
     if (uart_[i]->uart_handle_ == huart) {
-      uart_[i]->txCpltCallback();
+      uart_[i]->txCpltCb();
       break;
     }
   }
 }
 
-void UartIrq::rxCpltCallback(UART_HandleTypeDef* huart) {
+void UartIrq::rxCpltCb(UART_HandleTypeDef* huart) {
   for (size_t i = 0; i < sizeof(uart_); i++) {
     if (uart_[i]->uart_handle_ == huart) {
-      uart_[i]->rxCpltCallback();
+      uart_[i]->rxCpltCb();
       break;
     }
   }
@@ -67,11 +72,11 @@ void UartIrq::rxCpltCallback(UART_HandleTypeDef* huart) {
 
 extern "C" {
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
-  UartIrq::getInstance().txCpltCallback(huart);
+  UartIrq::getInstance().txCpltCb(huart);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
-  UartIrq::getInstance().rxCpltCallback(huart);
+  UartIrq::getInstance().rxCpltCb(huart);
 }
 }  // extern "C"
 

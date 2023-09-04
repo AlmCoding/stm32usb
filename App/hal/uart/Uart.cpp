@@ -263,7 +263,7 @@ Status_t Uart::startTx() {
   return status;
 }
 
-void Uart::txCpltCallback() {
+void Uart::txCpltCb() {
   DEBUG_INFO("Tx cplt (seq: %d)", seqence_number_)
   DEBUG_INFO("Cplt=[%d, dma: %d, [%d, %d[", this_tx_start_, DMA_TX_READ_POS, next_tx_start_, next_tx_end_)
 
@@ -279,9 +279,13 @@ void Uart::txCpltCallback() {
   }
 
   send_status_msg_ = true;
+
+  // Trigger uart task for fast service notification
+  os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
+  os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
 }
 
-void Uart::rxCpltCallback() {
+void Uart::rxCpltCb() {
   DEBUG_INFO("Rx cplt (seq: %d)", seqence_number_)
 
   // Trigger uart task for fast service notification

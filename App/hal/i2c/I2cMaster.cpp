@@ -6,6 +6,7 @@
  */
 
 #include "hal/i2c/I2cMaster.hpp"
+#include "hal/i2c/I2cIrq.hpp"
 #include "os/msg/msg_broker.hpp"
 #include "srv/debug.hpp"
 
@@ -30,13 +31,14 @@ I2cMaster::I2cMaster(I2C_HandleTypeDef* i2c_handle) : i2c_handle_{ i2c_handle } 
 I2cMaster::~I2cMaster() {}
 
 Status_t I2cMaster::config() {
+  I2cIrq::getInstance().registerI2cMaster(this);
   return Status_t::Ok;
 }
 
 Status_t I2cMaster::init() {
   osMessageQueueReset(pending_queue_);
   osMessageQueueReset(complete_queue_);
-  this_complete_ = true;
+  request_complete_ = true;
   return Status_t::Ok;
 }
 
@@ -44,7 +46,7 @@ uint32_t I2cMaster::poll() {
   uint32_t service_requests = 0;
 
 #if (START_I2_REQUEST_IMMEDIATELY == false)
-  // startTx();
+  startRequest();
 #endif
 
   if (osMessageQueueGetCount(complete_queue_) > 0) {
@@ -98,12 +100,12 @@ Status_t I2cMaster::scheduleRequest(Request* request, uint8_t* write_data, uint3
     return Status_t::Error;
   }
 
-  // Add request to queue
+  // Add request to pending_queue
   if (osMessageQueuePut(pending_queue_, request, 0, 0) == osOK) {
     status = Status_t::Ok;
 
 #if (START_I2_REQUEST_IMMEDIATELY == true)
-    // startTx();
+    startRequest();
 #else
     // Trigger i2c task for fast transmit start
     os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
@@ -154,6 +156,77 @@ int32_t I2cMaster::allocateBufferSpace(size_t size) {
   }
 
   return start;
+}
+
+Status_t I2cMaster::startRequest() {
+  Status_t status = Status_t::Ok;
+  HAL_I2C_StateTypeDef state = HAL_I2C_GetState(i2c_handle_);
+  uint32_t space = osMessageQueueGetSpace(complete_queue_);
+
+  if ((request_complete_ == false) ||  // Request ongoing
+      (space == 0) ||                  // Full complete queue
+      (state == HAL_I2C_STATE_BUSY)) {
+    // Ongoing request or full compete queue or busy i2c
+    return Status_t::Busy;
+  }
+
+  if (osMessageQueueGet(pending_queue_, &request_, 0, 0) == osOK) {
+    // Request taken from queue
+    if (request_.type == RequestType::Write) {
+      status = startWrite();
+    } else {
+      status = startRead();
+    }
+  }
+
+  return status;
+}
+
+Status_t I2cMaster::startWrite() {
+  Status_t status;
+  HAL_StatusTypeDef write_status;
+
+  uint16_t slave_addr = request_.write.slave_addr << 1;
+  write_status = HAL_I2C_Master_Seq_Transmit_DMA(i2c_handle_,                                // Handle
+                                                 slave_addr,                                 // Addr
+                                                 data_buffer_ + request_.write.write_start,  // Ptr
+                                                 request_.write.write_size,                  // Length
+                                                 xfer_options_);
+  if (write_status == HAL_OK) {
+    DEBUG_INFO("Start write (id: %d) [ok]", request_.write.request_id);
+    status = Status_t::Ok;
+
+  } else {
+    DEBUG_ERROR("Start write (id: %d) [failed]", request_.write.request_id);
+    status = Status_t::Error;
+  }
+
+  return status;
+}
+
+Status_t I2cMaster::startRead() {
+  Status_t status = Status_t::Ok;
+  return status;
+}
+
+void I2cMaster::writeCpltCb() {
+  DEBUG_INFO("Write cplt (id: %d)", request_.write.request_id);
+
+  // Add request to complete_queue
+  if (osMessageQueuePut(complete_queue_, &request_, 0, 0) != osOK) {
+    DEBUG_ERROR("Write cplt (id: %d)", request_.write.request_id);
+  }
+
+  request_complete_ = true;
+  send_status_msg_ = true;
+
+  // Trigger i2c task for fast service notification
+  os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
+  os::msg::send_msg(os::msg::MsgQueue::I2cTaskQueue, &msg);
+}
+
+void I2cMaster::readCpltCb() {
+
 }
 
 }  // namespace hal::i2c

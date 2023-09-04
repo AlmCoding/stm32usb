@@ -50,8 +50,8 @@ class Uart {
   bool isRxBufferEmpty();
   size_t getFreeTxSpace(uint32_t seq_num);
   Status_t startTx();
-  void txCpltCallback();
-  void rxCpltCallback();
+  void txCpltCb();
+  void rxCpltCb();
 
   UART_HandleTypeDef* uart_handle_;
   uint8_t rx_buffer_[RxBufferSize];

@@ -30,6 +30,11 @@ void GpioIrq::registerRequestSrvCallback(app::ctrl::RequestSrvCallback request_s
 Status_t GpioIrq::registerGpio(Gpio* gpio) {
   Status_t status;
 
+  if (gpio == nullptr) {
+    DEBUG_ERROR("Invalid Gpio register attempt")
+    return Status_t::Error;
+  }
+
   // Check if already registered
   for (size_t i = 0; i < registered_; i++) {
     if (gpio_[i] == gpio) {
@@ -37,8 +42,8 @@ Status_t GpioIrq::registerGpio(Gpio* gpio) {
     }
   }
 
-  if ((gpio != nullptr) && (registered_ < sizeof(gpio_))) {
-    DEBUG_INFO("Register gpio(%d) [ok]", gpio->id_)
+  if (registered_ < static_cast<size_t>(Gpio::Id::GpioCount)) {
+    DEBUG_INFO("Register Gpio(%d) [ok]", gpio->id_)
 
     gpio_[registered_] = gpio;
     HAL_NVIC_EnableIRQ(gpio->irq_);
@@ -47,7 +52,7 @@ Status_t GpioIrq::registerGpio(Gpio* gpio) {
     status = Status_t::Ok;
 
   } else {
-    DEBUG_INFO("Register gpio(%d) [failed]", gpio->id_)
+    DEBUG_ERROR("Register Gpio(%d) [failed]", gpio->id_)
     status = Status_t::Error;
   }
 

@@ -69,6 +69,9 @@ int32_t UartService::postRequest(const uint8_t* data, size_t len) {
     if (uart0_.config(uart_msg.msg.cfg.baud_rate) == Status_t::Ok) {
       status = 0;
     }
+
+  } else {
+    DEBUG_ERROR("Invalid request message!");
   }
 
   return status;
