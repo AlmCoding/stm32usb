@@ -19,7 +19,8 @@ set( ${PROJECT_NAME}_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/hal/gpio/GpioIrq.cpp 
     ${CMAKE_CURRENT_LIST_DIR}/hal/uart/Uart.cpp 
     ${CMAKE_CURRENT_LIST_DIR}/hal/uart/UartIrq.cpp 
-    ${CMAKE_CURRENT_LIST_DIR}/hal/i2c/i2cMaster.cpp 
+    ${CMAKE_CURRENT_LIST_DIR}/hal/i2c/I2cMaster.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/hal/i2c/I2cIrq.cpp 
     # os
     ${CMAKE_CURRENT_LIST_DIR}/os/builder.cpp 
     ${CMAKE_CURRENT_LIST_DIR}/os/hook.cpp 
