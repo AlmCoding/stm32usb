@@ -59,11 +59,8 @@ int32_t I2cService::postRequest(const uint8_t* data, size_t len) {
     return -1;
   }
 
-  if (i2c_msg.which_msg == i2c_proto_I2cMsg_master_write_tag) {
-    status = postMasterWriteRequest(&i2c_msg);
-
-  } else if (i2c_msg.which_msg == i2c_proto_I2cMsg_master_read_tag) {
-    status = postMasterReadRequest(&i2c_msg);
+  if (i2c_msg.which_msg == i2c_proto_I2cMsg_master_request_tag) {
+    status = postMasterRequest(&i2c_msg);
 
   } else if (i2c_msg.which_msg == i2c_proto_I2cMsg_cfg_tag) {
     status = 0;
@@ -75,54 +72,19 @@ int32_t I2cService::postRequest(const uint8_t* data, size_t len) {
   return status;
 }
 
-int32_t I2cService::postMasterWriteRequest(i2c_proto_I2cMsg* msg) {
+int32_t I2cService::postMasterRequest(i2c_proto_I2cMsg* msg) {
   int32_t status = -1;
   hal::i2c::I2cMaster::Request request;
 
-  request.type = hal::i2c::I2cMaster::RequestType::Write;
-  request.write.request_id = static_cast<uint16_t>(msg->msg.master_write.request_id);
-  request.write.slave_addr = static_cast<uint16_t>(msg->msg.master_write.slave_addr);
-  request.write.write_size = static_cast<uint16_t>(msg->msg.master_write.write_data.size);
-  request.write.send_stop = static_cast<uint16_t>(msg->msg.master_write.send_stop);
+  request.request_id = static_cast<uint16_t>(msg->msg.master_request.request_id);
+  request.slave_addr = static_cast<uint16_t>(msg->msg.master_request.slave_addr);
+  request.write_size = static_cast<uint16_t>(msg->msg.master_request.write_data.size);
+  request.read_size = static_cast<uint16_t>(msg->msg.master_request.read_size);
+  request.sequence_id = static_cast<uint16_t>(msg->msg.master_request.sequence_id);
+  request.sequence_idx = static_cast<uint16_t>(msg->msg.master_request.sequence_idx);
 
-  if (i2cMaster0_.scheduleRequest(&request, static_cast<uint8_t*>(msg->msg.master_write.write_data.bytes),
+  if (i2cMaster0_.scheduleRequest(&request, static_cast<uint8_t*>(msg->msg.master_request.write_data.bytes),
                                   msg->sequence_number) == Status_t::Ok) {
-    status = 0;
-  }
-
-  return status;
-}
-
-int32_t I2cService::postMasterReadRequest(i2c_proto_I2cMsg* msg) {
-  int32_t status = -1;
-  hal::i2c::I2cMaster::Request request;
-
-  request.type = hal::i2c::I2cMaster::RequestType::Read;
-  request.read.request_id = static_cast<uint16_t>(msg->msg.master_read.request_id);
-  request.read.slave_addr = static_cast<uint16_t>(msg->msg.master_read.slave_addr);
-  request.read.reg_addr = static_cast<uint16_t>(msg->msg.master_read.reg_addr);
-  request.read.send_stop = static_cast<uint16_t>(msg->msg.master_read.send_stop);
-
-  switch (msg->msg.master_read.addr_size) {
-    case i2c_proto_AddrSize::i2c_proto_AddrSize_TWO_BYTES: {
-      request.read.addr_size = hal::i2c::I2cMaster::AddrSize::TwoBytes;
-      break;
-    }
-    case i2c_proto_AddrSize::i2c_proto_AddrSize_ONE_BYTE: {
-      request.read.addr_size = hal::i2c::I2cMaster::AddrSize::OneByte;
-      break;
-    }
-    case i2c_proto_AddrSize::i2c_proto_AddrSize_ZERO_BYTES: {
-      request.read.addr_size = hal::i2c::I2cMaster::AddrSize::ZeroBytes;
-      break;
-    }
-    default: {
-      DEBUG_ERROR("Invalid MasterReadRequest (addr_size: %i)", msg->msg.master_read.addr_size);
-      return -1;
-    }
-  }
-
-  if (i2cMaster0_.scheduleRequest(&request, nullptr, msg->sequence_number) == Status_t::Ok) {
     status = 0;
   }
 

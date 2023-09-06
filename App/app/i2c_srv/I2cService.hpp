@@ -29,8 +29,7 @@ class I2cService {
   int32_t serviceRequest(uint8_t* data, size_t max_len);
 
  private:
-  int32_t postMasterWriteRequest(i2c_proto_I2cMsg* msg);
-  int32_t postMasterReadRequest(i2c_proto_I2cMsg* msg);
+  int32_t postMasterRequest(i2c_proto_I2cMsg* msg);
   void serviceDataRequest(i2c_proto_I2cMsg* msg, size_t max_len);
   void serviceStatusRequest(i2c_proto_I2cMsg* msg, size_t max_len);
 

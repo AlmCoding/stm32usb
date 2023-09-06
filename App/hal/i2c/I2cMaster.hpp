@@ -29,33 +29,15 @@ class I2cMaster {
   } Space;
 
  public:
-  enum class RequestType { Write = 0, Read };
-  enum class AddrSize { ZeroBytes = 0, OneByte, TwoBytes };
-
   typedef struct {
     uint16_t request_id;
     uint16_t slave_addr;
     uint16_t write_size;
-    size_t write_start;
-    bool send_stop;
-  } WriteRequest;
-
-  typedef struct {
-    uint16_t request_id;
-    uint16_t slave_addr;
-    uint16_t reg_addr;
-    AddrSize addr_size;
     uint16_t read_size;
+    size_t write_start;
     size_t read_start;
-    bool send_stop;
-  } ReadRequest;
-
-  typedef struct {
-    RequestType type;
-    union {
-      WriteRequest write;
-      ReadRequest read;
-    };
+    uint16_t sequence_id;
+    uint16_t sequence_idx;
   } Request;
 
   I2cMaster(I2C_HandleTypeDef* i2c_handle);
@@ -73,6 +55,7 @@ class I2cMaster {
   int32_t allocateBufferSpace(size_t size);
   Status_t startRequest();
   Status_t startWrite();
+  Status_t startReadReg();
   Status_t startRead();
   void writeCpltCb();
   void readCpltCb();
@@ -105,8 +88,7 @@ class I2cMaster {
   size_t data_start_ = 0;
   size_t data_end_ = 0;
 
-  bool queue_overflow_ = false;
-  bool buffer_overflow_ = false;
+  bool request_rejected_ = false;
 
   Request request_;
   uint32_t xfer_options_ = I2C_FIRST_AND_LAST_FRAME;
