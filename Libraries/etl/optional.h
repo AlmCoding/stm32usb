@@ -115,6 +115,8 @@ namespace etl
   {
   public:
 
+    typedef T value_type;
+
     //***************************************************************************
     /// Constructor.
     //***************************************************************************
@@ -435,10 +437,23 @@ namespace etl
     //***************************************************************************
     /// Gets the value or a default if not valid.
     //***************************************************************************
+    template <typename U>
     ETL_CONSTEXPR20_STL
-    T&& value_or(T&& default_value) const&&
+    etl::enable_if_t<etl::is_convertible<U, T>::value, T>
+      value_or(U&& default_value) const&
     {
-      return has_value() ? etl::move(value()) : default_value;
+      return has_value() ? value() : etl::forward<T>(default_value);
+    }
+
+    //***************************************************************************
+    /// Gets the value or a default if not valid.
+    //***************************************************************************
+    template <typename U>
+    ETL_CONSTEXPR20_STL
+    etl::enable_if_t<etl::is_convertible<U, T>::value, T>
+      value_or(U&& default_value) &&
+    {
+      return has_value() ? etl::move(value()) : etl::forward<T>(default_value);
     }
 #endif
 
@@ -474,6 +489,24 @@ namespace etl
       storage.construct(etl::forward<TArgs>(args)...);
     }
 #else
+    //*************************************************************************
+    /// Emplaces a value.
+    /// 1 parameter.
+    //*************************************************************************
+    T& emplace()
+    {
+      if (has_value())
+      {
+        // Destroy the old one.
+        storage.destroy();
+      }
+
+      T* p = ::new (&storage.u.value) T();
+      storage.valid = true;
+
+      return *p;
+    }
+
     //*************************************************************************
     /// Emplaces a value.
     /// 1 parameter.
@@ -657,6 +690,8 @@ namespace etl
   {
   public:
 
+    typedef T value_type;
+
     //***************************************************************************
     /// Constructor.
     //***************************************************************************
@@ -700,8 +735,8 @@ namespace etl
     //***************************************************************************
     ETL_CONSTEXPR14 optional(const T& value_)
       : valid(true)
-      , storage(value_)
     {
+      storage.u.value = value_;
     }
 
 #if ETL_USING_CPP11
@@ -710,8 +745,8 @@ namespace etl
     //***************************************************************************
     ETL_CONSTEXPR14 optional(T&& value_)
       : valid(true)
-      , storage(etl::move(value_))
     {
+      storage.u.value = etl::move(value_);
     }
 #endif
 
@@ -720,6 +755,7 @@ namespace etl
     //***************************************************************************
     ETL_CONSTEXPR14 optional& operator =(etl::nullopt_t)
     {
+      valid = false;
       return *this;
     }
 
@@ -730,7 +766,7 @@ namespace etl
     {
       if (this != &other)
       {
-        storage = other.storage;
+        storage.u = other.storage.u;
         valid   = other.valid;
       }
 
@@ -745,7 +781,7 @@ namespace etl
     {
       if (this != &other)
       {
-        storage = etl::move(other.storage);
+        storage.u = etl::move(other.storage.u);
         valid   = other.valid;
       }
 
@@ -758,7 +794,7 @@ namespace etl
     //***************************************************************************
     ETL_CONSTEXPR14 optional& operator =(const T& value_)
     {
-      storage = value_;
+      storage.u.value = value_;
       valid = true;
 
       return *this;
@@ -770,7 +806,7 @@ namespace etl
     //***************************************************************************
     ETL_CONSTEXPR14 optional& operator =(T&& value_)
     {
-      storage = etl::move(value_);
+      storage.u.value = etl::move(value_);
       valid = true;
 
       return *this;
@@ -786,7 +822,7 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return &storage;
+      return &storage.u.value;
     }
 
     //***************************************************************************
@@ -798,7 +834,7 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return &storage;
+      return &storage.u.value;
     }
 
     //***************************************************************************
@@ -810,7 +846,7 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return storage;
+      return storage.u.value;
     }
 
     //***************************************************************************
@@ -822,7 +858,7 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return storage;
+      return storage.u.value;
     }
 
 #if ETL_USING_CPP11
@@ -835,7 +871,7 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return etl::move(storage);
+      return etl::move(storage.u.value);
     }
 
     //***************************************************************************
@@ -847,7 +883,7 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return etl::move(storage);
+      return etl::move(storage.u.value);
     }
 #endif
 
@@ -877,7 +913,7 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return storage;
+      return storage.u.value;
     }
 
     //***************************************************************************
@@ -889,7 +925,7 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return storage;
+      return storage.u.value;
     }
 
     //***************************************************************************
@@ -910,7 +946,7 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return etl::move(storage);
+      return etl::move(storage.u.value);
     }
 
     //***************************************************************************
@@ -922,15 +958,43 @@ namespace etl
       ETL_ASSERT(valid, ETL_ERROR(optional_invalid));
 #endif
 
-      return etl::move(storage);
+      return etl::move(storage.u.value);
     }
 
     //***************************************************************************
-    /// Gets the value or a default if no valid.
+    /// Gets the value or a default if not valid.
     //***************************************************************************
-    ETL_CONSTEXPR14 T&& value_or(T&& default_value) const&&
+    template <typename U>
+    ETL_CONSTEXPR20_STL
+    etl::enable_if_t<etl::is_convertible<U, T>::value, T>
+      value_or(U&& default_value) const&
     {
-      return valid ? etl::move(value()) : default_value;
+      if (has_value())
+      {
+        return value();
+      }
+      else
+      {
+        return static_cast<T>(etl::forward<U>(default_value));
+      }
+    }
+
+    //***************************************************************************
+    /// Gets the value or a default if not valid.
+    //***************************************************************************
+    template <typename U>
+    ETL_CONSTEXPR20_STL
+    etl::enable_if_t<etl::is_convertible<U, T>::value, T>
+      value_or(U&& default_value) &&
+    {
+      if (has_value())
+      {
+        return etl::move(value());
+      }
+      else
+      {
+        return static_cast<T>(etl::forward<U>(default_value));
+      }
     }
 #endif
 
@@ -960,10 +1024,20 @@ namespace etl
     template <typename ... Args>
     ETL_CONSTEXPR14 void emplace(Args && ... args)
     {
-      storage = T(ETL_OR_STD::forward<Args>(args)...);
+      storage.u.value = T(ETL_OR_STD::forward<Args>(args)...);
       valid = true;
     }
 #else
+    //*************************************************************************
+    /// Emplaces a value.
+    /// 0 parameters.
+    //*************************************************************************
+    void emplace()
+    {
+      storage.u.value = value_type();
+      valid = true;
+    }
+
     //*************************************************************************
     /// Emplaces a value.
     /// 1 parameter.
@@ -971,7 +1045,7 @@ namespace etl
     template <typename T1>
     void emplace(const T1& value1)
     {
-      storage = value1;
+      storage.u.value = value1;
       valid = true;
     }
 
@@ -982,7 +1056,7 @@ namespace etl
     template <typename T1, typename T2>
     void emplace(const T1& value1, const T2& value2)
     {
-      storage = T(value1, value2);
+      storage.u.value = T(value1, value2);
       valid = true;
     }
 
@@ -993,7 +1067,7 @@ namespace etl
     template <typename T1, typename T2, typename T3>
     void emplace(const T1& value1, const T2& value2, const T3& value3)
     {
-      storage = T(value1, value2, value3);
+      storage.u.value = T(value1, value2, value3);
       valid = true;
     }
 
@@ -1004,7 +1078,7 @@ namespace etl
     template <typename T1, typename T2, typename T3, typename T4>
     void emplace(const T1& value1, const T2& value2, const T3& value3, const T4& value4)
     {
-      storage = T(value1, value2, value3, value4);
+      storage.u.value = T(value1, value2, value3, value4);
       valid = true;
     }
 #endif
@@ -1012,7 +1086,28 @@ namespace etl
   private:
 
     bool valid;
-    T    storage;
+
+    struct storage_type
+    {
+      storage_type()
+      {
+      }
+
+      union union_type
+      {
+        union_type()
+          : dummy(0)
+        {
+        }
+
+        char dummy;
+        T value;
+      };
+
+      union_type u;
+    };
+
+    storage_type storage;
   };
 
 #include "etl/private/diagnostic_uninitialized_push.h"
