@@ -59,6 +59,7 @@ void processMsg(os::msg::BaseMsg* msg) {
       }
       break;
     }
+    case os::msg::MsgId::TriggerTask:
     default: {
       break;
     }

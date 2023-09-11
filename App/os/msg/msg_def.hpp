@@ -13,8 +13,7 @@
 namespace os::msg {
 
 enum class MsgQueue {
-  UsbTaskQueue = 0,
-  CtrlTaskQueue,
+  CtrlTaskQueue = 0,
   UartTaskQueue,
   GpioTaskQueue,
   I2cTaskQueue,

@@ -39,8 +39,8 @@ class Uart {
   uint32_t poll();
 
   Status_t scheduleTx(const uint8_t* data, size_t len, uint32_t seq_num);
-  uint32_t getServiceInfo(ServiceInfo* req);
 
+  uint32_t getServiceInfo(ServiceInfo* req);
   size_t serviceRx(uint8_t* data, size_t max_len);
   void serviceStatus(StatusInfo* status);
 
@@ -50,8 +50,8 @@ class Uart {
   bool isRxBufferEmpty();
   size_t getFreeTxSpace(uint32_t seq_num);
   Status_t startTx();
-  void txCpltCb();
-  void rxCpltCb();
+  void txCompleteCb();
+  void rxCompleteCb();
 
   UART_HandleTypeDef* uart_handle_;
   uint8_t rx_buffer_[RxBufferSize];

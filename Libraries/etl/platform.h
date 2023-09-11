@@ -342,7 +342,7 @@ SOFTWARE.
 // Determine if the ETL can use char8_t type.
 #if ETL_USING_8BIT_TYPES
   #if ETL_NO_SMALL_CHAR_SUPPORT
-    typedef int8_t char8_t;
+    // typedef int8_t char8_t;
     #define ETL_HAS_CHAR8_T 1
     #define ETL_HAS_NATIVE_CHAR8_T 0
   #else

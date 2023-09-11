@@ -52,19 +52,19 @@ Status_t UartIrq::registerUart(Uart* uart) {
   return status;
 }
 
-void UartIrq::txCpltCb(UART_HandleTypeDef* huart) {
+void UartIrq::txCompleteCb(UART_HandleTypeDef* huart) {
   for (size_t i = 0; i < registered_; i++) {
     if (uart_[i]->uart_handle_ == huart) {
-      uart_[i]->txCpltCb();
+      uart_[i]->txCompleteCb();
       break;
     }
   }
 }
 
-void UartIrq::rxCpltCb(UART_HandleTypeDef* huart) {
+void UartIrq::rxCompleteCb(UART_HandleTypeDef* huart) {
   for (size_t i = 0; i < sizeof(uart_); i++) {
     if (uart_[i]->uart_handle_ == huart) {
-      uart_[i]->rxCpltCb();
+      uart_[i]->rxCompleteCb();
       break;
     }
   }
@@ -72,11 +72,11 @@ void UartIrq::rxCpltCb(UART_HandleTypeDef* huart) {
 
 extern "C" {
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef* huart) {
-  UartIrq::getInstance().txCpltCb(huart);
+  UartIrq::getInstance().txCompleteCb(huart);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart) {
-  UartIrq::getInstance().rxCpltCb(huart);
+  UartIrq::getInstance().rxCompleteCb(huart);
 }
 }  // extern "C"
 

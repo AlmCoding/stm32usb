@@ -20,7 +20,7 @@ typedef StaticQueue_t osStaticMessageQDef_t;
 
 class I2cMaster {
  private:
-  constexpr static size_t RequestQueueSize = 4;
+  constexpr static size_t RequestQueueSize = 8;
   constexpr static size_t DataBufferSize = 128;
 
   typedef struct {
@@ -28,8 +28,25 @@ class I2cMaster {
     size_t space2;  // Starts at 0
   } Space;
 
- public:
   typedef struct {
+    bool ongoing;
+    uint16_t id;
+    uint16_t max_idx;
+  } SequenceState;
+
+ public:
+  enum class RequestStatus {
+    NotInit = 0,
+    NoSpace,
+    Pending,
+    Ongoing,
+    Complete,
+    SlaveBusy,
+    InterfaceError,
+  };
+
+  typedef struct {
+    RequestStatus status_code;
     uint16_t request_id;
     uint16_t slave_addr;
     uint16_t write_size;
@@ -40,6 +57,16 @@ class I2cMaster {
     uint16_t sequence_idx;
   } Request;
 
+  typedef struct {
+    uint32_t sequence_number;
+    RequestStatus status_code;
+    uint16_t request_id;
+    uint16_t read_size;
+    uint16_t queue_space;
+    uint16_t buffer_space1;
+    uint16_t buffer_space2;
+  } StatusInfo;
+
   I2cMaster(I2C_HandleTypeDef* i2c_handle);
   virtual ~I2cMaster();
 
@@ -48,17 +75,20 @@ class I2cMaster {
   uint32_t poll();
 
   Status_t scheduleRequest(Request* request, uint8_t* write_data, uint32_t seq_num);
-  Status_t serviceRequest();
+  Status_t serviceStatus(StatusInfo* info, uint8_t* read_data, size_t max_size);
 
  private:
-  void getFreeSpace(Space* free);
-  int32_t allocateBufferSpace(size_t size);
+  Status_t exitScheduleRequest(Request* request, uint32_t seq_num);
+  Space getFreeSpace();
+  Status_t allocateBufferSpace(Request* request);
+  void freeBufferSpace(Request* request);
   Status_t startRequest();
   Status_t startWrite();
   Status_t startReadReg();
   Status_t startRead();
-  void writeCpltCb();
-  void readCpltCb();
+  void writeCompleteCb();
+  void readCompleteCb();
+  void complete();
 
   I2C_HandleTypeDef* i2c_handle_;
 
@@ -88,14 +118,10 @@ class I2cMaster {
   size_t data_start_ = 0;
   size_t data_end_ = 0;
 
-  bool request_rejected_ = false;
-
-  Request request_;
-  uint32_t xfer_options_ = I2C_FIRST_AND_LAST_FRAME;
   bool request_complete_ = true;
+  Request request_;
+  SequenceState sequence_ = { 0 };
 
-  bool send_data_msg_ = false;
-  bool send_status_msg_ = false;
   uint32_t seqence_number_ = 0;
 
   friend class I2cIrq;

@@ -57,6 +57,7 @@ Status_t Gpio::config(Mode mode) {
       configOutputOpenDrain();
       break;
     }
+    case Mode::NotInitialized:
     default: {
       status = Status_t::Error;
       break;

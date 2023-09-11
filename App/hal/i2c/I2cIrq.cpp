@@ -55,7 +55,7 @@ Status_t I2cIrq::registerI2cMaster(I2cMaster* i2c_master) {
 void I2cIrq::masterWriteCpltCb(I2C_HandleTypeDef* hi2c) {
   for (size_t i = 0; i < registered_master_; i++) {
     if (i2c_master_[i]->i2c_handle_ == hi2c) {
-      i2c_master_[i]->writeCpltCb();
+      i2c_master_[i]->writeCompleteCb();
       break;
     }
   }
@@ -64,7 +64,7 @@ void I2cIrq::masterWriteCpltCb(I2C_HandleTypeDef* hi2c) {
 void I2cIrq::masterReadCpltCb(I2C_HandleTypeDef* hi2c) {
   for (size_t i = 0; i < registered_master_; i++) {
     if (i2c_master_[i]->i2c_handle_ == hi2c) {
-      i2c_master_[i]->readCpltCb();
+      i2c_master_[i]->readCompleteCb();
       break;
     }
   }

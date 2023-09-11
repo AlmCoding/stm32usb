@@ -197,10 +197,6 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t len, uint32_t seq_num) {
 
 #if (START_UART_REQUEST_IMMEDIATELY == true)
     startTx();
-#else
-    // Trigger uart task for fast transmit start
-    os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
-    os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
 #endif
 
   } else {
@@ -211,6 +207,11 @@ Status_t Uart::scheduleTx(const uint8_t* data, size_t len, uint32_t seq_num) {
   }
 
   seqence_number_ = seq_num;
+
+  // Trigger uart task
+  os::msg::BaseMsg msg = { .id = os::msg::MsgId::TriggerTask };
+  os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
+
   return status;
 }
 
@@ -263,7 +264,7 @@ Status_t Uart::startTx() {
   return status;
 }
 
-void Uart::txCpltCb() {
+void Uart::txCompleteCb() {
   DEBUG_INFO("Tx cplt (seq: %d)", seqence_number_)
   DEBUG_INFO("Cplt=[%d, dma: %d, [%d, %d[", this_tx_start_, DMA_TX_READ_POS, next_tx_start_, next_tx_end_)
 
@@ -285,7 +286,7 @@ void Uart::txCpltCb() {
   os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
 }
 
-void Uart::rxCpltCb() {
+void Uart::rxCompleteCb() {
   DEBUG_INFO("Rx cplt (seq: %d)", seqence_number_)
 
   // Trigger uart task for fast service notification

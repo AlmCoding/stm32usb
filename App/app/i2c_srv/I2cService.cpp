@@ -39,6 +39,7 @@ void I2cService::init(app::ctrl::RequestSrvCallback request_service_cb) {
 
 void I2cService::poll() {
   uint32_t request_cnt = i2cMaster0_.poll();
+  // request_cnt += i2cSlave0_.poll();
 
   if (request_cnt > 0) {
     request_service_cb_(request_cnt);
@@ -76,6 +77,7 @@ int32_t I2cService::postMasterRequest(i2c_proto_I2cMsg* msg) {
   int32_t status = -1;
   hal::i2c::I2cMaster::Request request;
 
+  request.status_code = hal::i2c::I2cMaster::RequestStatus::NotInit;
   request.request_id = static_cast<uint16_t>(msg->msg.master_request.request_id);
   request.slave_addr = static_cast<uint16_t>(msg->msg.master_request.slave_addr);
   request.write_size = static_cast<uint16_t>(msg->msg.master_request.write_data.size);
@@ -92,7 +94,38 @@ int32_t I2cService::postMasterRequest(i2c_proto_I2cMsg* msg) {
 }
 
 int32_t I2cService::serviceRequest(uint8_t* data, size_t max_len) {
-  return 0;
+  /* Allocate space for the decoded message. */
+  i2c_proto_I2cMsg i2c_msg = i2c_proto_I2cMsg_init_zero;
+  /* Create a stream that will write to our buffer. */
+  pb_ostream_t stream = pb_ostream_from_buffer(data, max_len);
+
+  serviceMasterStatusRequest(&i2c_msg, max_len);
+
+  /* Now we are ready to encode the message! */
+  if (pb_encode(&stream, i2c_proto_I2cMsg_fields, &i2c_msg) == false) {
+    DEBUG_ERROR("ProtoBuf encode [failed]");
+    return -1;
+  }
+
+  return stream.bytes_written;
+}
+
+void I2cService::serviceMasterStatusRequest(i2c_proto_I2cMsg* msg, size_t max_size) {
+  hal::i2c::I2cMaster::StatusInfo status;
+
+  i2cMaster0_.serviceStatus(&status, msg->msg.master_status.read_data.bytes, max_size);
+
+  msg->sequence_number = status.sequence_number;
+  msg->which_msg = i2c_proto_I2cMsg_master_status_tag;
+
+  msg->msg.master_status.status_code = static_cast<i2c_proto_I2cMasterStatusCode>(status.status_code);
+  msg->msg.master_status.request_id = status.request_id;
+  msg->msg.master_status.read_data.size = status.read_size;
+  msg->msg.master_status.queue_space = status.queue_space;
+  msg->msg.master_status.buffer_space1 = status.buffer_space1;
+  msg->msg.master_status.buffer_space2 = status.buffer_space2;
+
+  DEBUG_INFO("Srv status (seq: %d)", msg->sequence_number);
 }
 
 }  // namespace app::i2c_srv
