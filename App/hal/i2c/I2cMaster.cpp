@@ -80,7 +80,7 @@ uint32_t I2cMaster::poll() {
 Status_t I2cMaster::scheduleRequest(Request* request, uint8_t* write_data, uint32_t seq_num) {
   // Check pending queue space
   if (osMessageQueueGetSpace(pending_queue_) == 0) {
-    DEBUG_ERROR("Queue overflow (req. id: %d)", request->request_id);
+    DEBUG_ERROR("Queue overflow (req: %d)", request->request_id);
     request->status_code = RequestStatus::NoSpace;
     return exitScheduleRequest(request, seq_num);
   }
@@ -91,7 +91,7 @@ Status_t I2cMaster::scheduleRequest(Request* request, uint8_t* write_data, uint3
   }
 
   if (allocateBufferSpace(request) == Status_t::Error) {
-    DEBUG_ERROR("Buffer overflow (req. id: %d)", request->request_id);
+    DEBUG_ERROR("Buffer overflow (req: %d)", request->request_id);
     request->status_code = RequestStatus::NoSpace;
     return exitScheduleRequest(request, seq_num);
   }
@@ -120,9 +120,12 @@ Status_t I2cMaster::exitScheduleRequest(Request* request, uint32_t seq_num) {
 
   if (request->status_code == hal::i2c::I2cMaster::RequestStatus::NoSpace) {
     if (osMessageQueuePut(complete_queue_, request, 0, 0) != osOK) {
-      DEBUG_ERROR("NoSpace queue put (req. id: %d) [failed]", request->request_id);
+      DEBUG_INFO("Sched. request (req: %d) [failed]", request->request_id);
       status = Status_t::Error;
     }
+
+  } else {
+    DEBUG_INFO("Sched. request (req: %d) [ok]", request->request_id);
   }
 
   // Update sequence number
@@ -140,8 +143,6 @@ Status_t I2cMaster::serviceStatus(StatusInfo* info, uint8_t* read_data, size_t m
   Request request;
 
   if (osMessageQueueGet(complete_queue_, &request, 0, 0) != osOK) {
-    // Error: nothing to service
-    DEBUG_ERROR("Service status [failed]");
     status = Status_t::Error;
   }
 
@@ -149,13 +150,20 @@ Status_t I2cMaster::serviceStatus(StatusInfo* info, uint8_t* read_data, size_t m
   info->status_code = request.status_code;
   info->request_id = request.request_id;
 
-  ETL_ASSERT(request.read_size <= max_size, ETL_ERROR(0));
-  if (request.read_size > 0) {
-    std::memcpy(read_data, data_buffer_ + request.read_start, request.read_size);
-  }
+  if (request.status_code == RequestStatus::Complete) {
+    info->read_size = request.read_size;
 
-  // Free buffer space
-  freeBufferSpace(&request);
+    ETL_ASSERT(request.read_size <= max_size, ETL_ERROR(0));
+    if (request.read_size > 0) {
+      std::memcpy(read_data, data_buffer_ + request.read_start, request.read_size);
+    }
+
+    // Free buffer space
+    freeBufferSpace(&request);
+
+  } else {
+    info->read_size = 0;
+  }
 
   info->queue_space = static_cast<uint16_t>(etl::min(osMessageQueueGetSpace(pending_queue_),  //
                                                      osMessageQueueGetSpace(complete_queue_)));
@@ -170,8 +178,8 @@ I2cMaster::Space I2cMaster::getFreeSpace() {
   Space free = { 0 };
 
   if (data_start_ < data_end_) {
-    free.space1 = data_start_;
-    free.space2 = sizeof(data_buffer_) - data_end_;
+    free.space1 = sizeof(data_buffer_) - data_end_;
+    free.space2 = data_start_;
 
   } else if (data_start_ > data_end_) {
     free.space1 = data_start_ - data_end_;
@@ -290,11 +298,9 @@ Status_t I2cMaster::startRequest() {
       // Write + read
       status = startWrite();
     } else {
-      DEBUG_ERROR("Invalid read & write size (== 0) (id: %d)", request_.request_id);
+      DEBUG_ERROR("Start request (req: %d) [failed]", request_.request_id);
       status = Status_t::Error;
     }
-
-    status = startRequest();
   }
 
   return status;
@@ -331,10 +337,10 @@ Status_t I2cMaster::startWrite() {
                                                request_.write_size,                  // Length
                                                xfer_options);
   if (hal_status == HAL_OK) {
-    DEBUG_INFO("Start write (id: %d) [ok]", request_.request_id);
+    DEBUG_INFO("Start write (req: %d) [ok]", request_.request_id);
     status = Status_t::Ok;
   } else {
-    DEBUG_ERROR("Start write (id: %d) [failed]", request_.request_id);
+    DEBUG_ERROR("Start write (req: %d) [failed]", request_.request_id);
     status = Status_t::Error;
   }
 
@@ -355,11 +361,11 @@ Status_t I2cMaster::startReadReg() {
                                     request_.read_size);
 
   if (hal_status == HAL_OK) {
-    DEBUG_INFO("Start read reg (id: %d) [ok]", request_.request_id);
+    DEBUG_INFO("Start read reg (req: %d) [ok]", request_.request_id);
     status = Status_t::Ok;
 
   } else {
-    DEBUG_ERROR("Start read reg (id: %d) [failed]", request_.request_id);
+    DEBUG_ERROR("Start read reg (req: %d) [failed]", request_.request_id);
     status = Status_t::Error;
   }
 
@@ -398,10 +404,10 @@ Status_t I2cMaster::startRead() {
                                               xfer_options);
 
   if (hal_status == HAL_OK) {
-    DEBUG_INFO("Start read (id: %d) [ok]", request_.request_id);
+    DEBUG_INFO("Start read (req: %d) [ok]", request_.request_id);
     status = Status_t::Ok;
   } else {
-    DEBUG_ERROR("Start read (id: %d) [failed]", request_.request_id);
+    DEBUG_ERROR("Start read (req: %d) [failed]", request_.request_id);
     status = Status_t::Error;
   }
 
@@ -413,13 +419,13 @@ void I2cMaster::writeCompleteCb() {
     startRead();
 
   } else {
-    DEBUG_INFO("Write cplt (id: %d)", request_.request_id);
+    DEBUG_INFO("Write cplt (req: %d)", request_.request_id);
     complete();
   }
 }
 
 void I2cMaster::readCompleteCb() {
-  DEBUG_INFO("Read cplt (id: %d)", request_.request_id);
+  DEBUG_INFO("Read cplt (req: %d)", request_.request_id);
   complete();
 }
 
@@ -428,7 +434,7 @@ void I2cMaster::complete() {
 
   // Add request to complete_queue
   if (osMessageQueuePut(complete_queue_, &request_, 0, 0) != osOK) {
-    DEBUG_ERROR("Complete queue put (id: %d) [failed]", request_.request_id);
+    DEBUG_ERROR("Cplt queue put (req: %d) [failed]", request_.request_id);
   }
 
   if (request_.sequence_idx == 0) {

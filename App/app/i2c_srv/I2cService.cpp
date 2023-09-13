@@ -99,7 +99,9 @@ int32_t I2cService::serviceRequest(uint8_t* data, size_t max_len) {
   /* Create a stream that will write to our buffer. */
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_len);
 
-  serviceMasterStatusRequest(&i2c_msg, max_len);
+  if (serviceMasterStatusRequest(&i2c_msg, max_len) == Status_t::Error) {
+    return -1;
+  }
 
   /* Now we are ready to encode the message! */
   if (pb_encode(&stream, i2c_proto_I2cMsg_fields, &i2c_msg) == false) {
@@ -110,22 +112,30 @@ int32_t I2cService::serviceRequest(uint8_t* data, size_t max_len) {
   return stream.bytes_written;
 }
 
-void I2cService::serviceMasterStatusRequest(i2c_proto_I2cMsg* msg, size_t max_size) {
-  hal::i2c::I2cMaster::StatusInfo status;
+Status_t I2cService::serviceMasterStatusRequest(i2c_proto_I2cMsg* msg, size_t max_size) {
+  Status_t status;
+  hal::i2c::I2cMaster::StatusInfo info;
 
-  i2cMaster0_.serviceStatus(&status, msg->msg.master_status.read_data.bytes, max_size);
+  if (i2cMaster0_.serviceStatus(&info, msg->msg.master_status.read_data.bytes, max_size) == Status_t::Ok) {
+    msg->sequence_number = info.sequence_number;
+    msg->which_msg = i2c_proto_I2cMsg_master_status_tag;
 
-  msg->sequence_number = status.sequence_number;
-  msg->which_msg = i2c_proto_I2cMsg_master_status_tag;
+    msg->msg.master_status.status_code = static_cast<i2c_proto_I2cMasterStatusCode>(info.status_code);
+    msg->msg.master_status.request_id = info.request_id;
+    msg->msg.master_status.read_data.size = info.read_size;
+    msg->msg.master_status.queue_space = info.queue_space;
+    msg->msg.master_status.buffer_space1 = info.buffer_space1;
+    msg->msg.master_status.buffer_space2 = info.buffer_space2;
 
-  msg->msg.master_status.status_code = static_cast<i2c_proto_I2cMasterStatusCode>(status.status_code);
-  msg->msg.master_status.request_id = status.request_id;
-  msg->msg.master_status.read_data.size = status.read_size;
-  msg->msg.master_status.queue_space = status.queue_space;
-  msg->msg.master_status.buffer_space1 = status.buffer_space1;
-  msg->msg.master_status.buffer_space2 = status.buffer_space2;
+    DEBUG_INFO("Srv status (req: %d) [ok]", info.request_id);
+    status = Status_t::Ok;
 
-  DEBUG_INFO("Srv status (seq: %d)", msg->sequence_number);
+  } else {
+    DEBUG_ERROR("Srv status (req: %d) [failed]", info.request_id);
+    status = Status_t::Error;
+  }
+
+  return status;
 }
 
 }  // namespace app::i2c_srv
