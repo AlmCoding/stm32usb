@@ -239,8 +239,10 @@ Status_t I2cMaster::allocateBufferSpace(Request* request) {
   }
 
   free = getFreeSpace();
-  DEBUG_INFO("After allocate (req: %d) [ds: %d, de: %d, sp1: %d, sp2: %d]",  //
-             request->request_id, data_start_, data_end_, free.space1, free.space2);
+  DEBUG_INFO("After allocate (req: %d, ws: %d (%d), rs: %d (%d)) [ds: %d, de: %d, sp1: %d, sp2: %d]",
+             request->request_id,                                                                 //
+             request->write_start, request->write_size, request->read_start, request->read_size,  //
+             data_start_, data_end_, free.space1, free.space2);
 
   return status;
 }
@@ -292,7 +294,7 @@ Status_t I2cMaster::startRequest() {
 
   if ((request_complete_ == false) ||  // Request ongoing
       (space == 0) ||                  // Full complete queue
-      (state == HAL_I2C_STATE_BUSY)) {
+      (state != HAL_I2C_STATE_READY)) {
     // Ongoing request or full complete queue or busy i2c
     return Status_t::Busy;
   }
