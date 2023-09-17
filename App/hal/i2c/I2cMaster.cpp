@@ -85,11 +85,6 @@ Status_t I2cMaster::scheduleRequest(Request* request, uint8_t* write_data, uint3
     return exitScheduleRequest(request, seq_num);
   }
 
-  if (data_start_ == data_end_) {
-    data_start_ = 0;
-    data_end_ = 0;
-  }
-
   if (allocateBufferSpace(request) == Status_t::Error) {
     DEBUG_ERROR("Buffer overflow (req: %d)", request->request_id);
     request->status_code = RequestStatus::NoSpace;
@@ -116,16 +111,17 @@ Status_t I2cMaster::scheduleRequest(Request* request, uint8_t* write_data, uint3
 }
 
 Status_t I2cMaster::exitScheduleRequest(Request* request, uint32_t seq_num) {
-  Status_t status = Status_t::Ok;
+  Status_t status;
 
   if (request->status_code == hal::i2c::I2cMaster::RequestStatus::NoSpace) {
-    if (osMessageQueuePut(complete_queue_, request, 0, 0) != osOK) {
-      DEBUG_INFO("Sched. request (req: %d) [failed]", request->request_id);
-      status = Status_t::Error;
-    }
+    DEBUG_INFO("Sched. request (req: %d) [failed]", request->request_id);
+    osStatus_t sts = osMessageQueuePut(complete_queue_, request, 0, 0);
+    ETL_ASSERT(sts == osOK, ETL_ERROR(0));
+    status = Status_t::Error;
 
   } else {
     DEBUG_INFO("Sched. request (req: %d) [ok]", request->request_id);
+    status = Status_t::Ok;
   }
 
   // Update sequence number
@@ -175,27 +171,36 @@ Status_t I2cMaster::serviceStatus(StatusInfo* info, uint8_t* read_data, size_t m
 }
 
 I2cMaster::Space I2cMaster::getFreeSpace() {
-  Space free = { 0 };
+  Space free;
 
   if (data_start_ < data_end_) {
-    free.space1 = sizeof(data_buffer_) - data_end_;
-    free.space2 = data_start_;
+    free.space1 = sizeof(data_buffer_) - data_end_ - 1;
+
+    if (data_start_ > 0) {
+      free.space2 = data_start_ - 1;
+    } else {
+      free.space2 = 0;
+    }
 
   } else if (data_start_ > data_end_) {
-    free.space1 = data_start_ - data_end_;
+    free.space1 = data_start_ - data_end_ - 1;
     free.space2 = 0;
 
   } else {
-    free.space1 = sizeof(data_buffer_);
+    free.space1 = sizeof(data_buffer_) - 1;
     free.space2 = 0;
   }
 
+  ETL_ASSERT((free.space1 + free.space2) <= (sizeof(data_buffer_) - 1), ETL_ERROR(0));
   return free;
 }
 
 Status_t I2cMaster::allocateBufferSpace(Request* request) {
   Status_t status = Status_t::Ok;
   Space free = getFreeSpace();
+
+  DEBUG_INFO("Before allocate (req: %d) [ds: %d, de: %d, sp1: %d, sp2: %d]",  //
+             request->request_id, data_start_, data_end_, free.space1, free.space2);
 
   if (free.space1 >= (request->write_size + request->read_size)) {
     // Place everything into space1
@@ -233,10 +238,20 @@ Status_t I2cMaster::allocateBufferSpace(Request* request) {
     status = Status_t::Error;
   }
 
+  free = getFreeSpace();
+  DEBUG_INFO("After allocate (req: %d) [ds: %d, de: %d, sp1: %d, sp2: %d]",  //
+             request->request_id, data_start_, data_end_, free.space1, free.space2);
+
   return status;
 }
 
 void I2cMaster::freeBufferSpace(Request* request) {
+  Space free = getFreeSpace();
+  DEBUG_INFO("Before free (req: %d, ws: %d (%d), rs: %d (%d)) [ds: %d, de: %d, sp1: %d, sp2: %d]",
+             request->request_id,                                                                 //
+             request->write_start, request->write_size, request->read_start, request->read_size,  //
+             data_start_, data_end_, free.space1, free.space2);
+
   if (data_start_ == request->write_start) {
     data_start_ += request->write_size;
 
@@ -257,9 +272,17 @@ void I2cMaster::freeBufferSpace(Request* request) {
       ETL_ASSERT(false, ETL_ERROR(0));
     }
 
+  } else if (request->write_start == 0) {
+    // Skip gap at buffer end
+    data_start_ = request->write_size + request->read_size;
+
   } else {
     ETL_ASSERT(false, ETL_ERROR(0));
   }
+
+  free = getFreeSpace();
+  DEBUG_INFO("After free (req: %d) [ds: %d, de: %d, sp1: %d, sp2: %d]",  //
+             request->request_id, data_start_, data_end_, free.space1, free.space2);
 }
 
 Status_t I2cMaster::startRequest() {
@@ -323,6 +346,7 @@ Status_t I2cMaster::startWrite() {
       // Other frame
       xfer_options = I2C_NEXT_FRAME;
     }
+
   } else {
     if (request_.read_size == 0) {
       xfer_options = I2C_FIRST_AND_LAST_FRAME;
@@ -339,6 +363,7 @@ Status_t I2cMaster::startWrite() {
   if (hal_status == HAL_OK) {
     DEBUG_INFO("Start write (req: %d) [ok]", request_.request_id);
     status = Status_t::Ok;
+
   } else {
     DEBUG_ERROR("Start write (req: %d) [failed]", request_.request_id);
     status = Status_t::Error;
@@ -389,6 +414,7 @@ Status_t I2cMaster::startRead() {
       // Other frame
       xfer_options = I2C_NEXT_FRAME;
     }
+
   } else {
     if (request_.write_size == 0) {
       xfer_options = I2C_FIRST_AND_LAST_FRAME;
@@ -406,6 +432,7 @@ Status_t I2cMaster::startRead() {
   if (hal_status == HAL_OK) {
     DEBUG_INFO("Start read (req: %d) [ok]", request_.request_id);
     status = Status_t::Ok;
+
   } else {
     DEBUG_ERROR("Start read (req: %d) [failed]", request_.request_id);
     status = Status_t::Error;
@@ -419,13 +446,13 @@ void I2cMaster::writeCompleteCb() {
     startRead();
 
   } else {
-    DEBUG_INFO("Write cplt (req: %d)", request_.request_id);
+    DEBUG_INFO("Write cplt (req: %d) [ok]", request_.request_id);
     complete();
   }
 }
 
 void I2cMaster::readCompleteCb() {
-  DEBUG_INFO("Read cplt (req: %d)", request_.request_id);
+  DEBUG_INFO("Read cplt (req: %d) [ok]", request_.request_id);
   complete();
 }
 

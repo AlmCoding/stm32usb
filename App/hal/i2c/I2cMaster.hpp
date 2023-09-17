@@ -20,8 +20,8 @@ typedef StaticQueue_t osStaticMessageQDef_t;
 
 class I2cMaster {
  private:
-  constexpr static size_t RequestQueueSize = 4;
-  constexpr static size_t DataBufferSize = 64;
+  constexpr static size_t RequestQueueSize = 8;
+  constexpr static size_t DataBufferSize = 64 + 1;
 
   typedef struct {
     size_t space1;  // Starts at data_end_
