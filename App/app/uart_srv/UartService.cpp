@@ -60,7 +60,7 @@ int32_t UartService::postRequest(const uint8_t* data, size_t len) {
   }
 
   if (uart_msg.which_msg == uart_proto_UartMsg_data_tag) {
-    if (uart0_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data.data.bytes), uart_msg.msg.data.data.size,
+    if (uart0_.scheduleTx(static_cast<uint8_t*>(uart_msg.msg.data.tx_data.bytes), uart_msg.msg.data.tx_data.size,
                           uart_msg.sequence_number) == Status_t::Ok) {
       status = 0;
     }
@@ -83,13 +83,8 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_len) {
   /* Create a stream that will write to our buffer. */
   pb_ostream_t stream = pb_ostream_from_buffer(data, max_len);
 
-  hal::uart::Uart::ServiceInfo req;
-  uart_msg.sequence_number = uart0_.getServiceInfo(&req);
-
-  if (req == hal::uart::Uart::ServiceInfo::SendRxData) {
-    serviceDataRequest(&uart_msg, max_len);
-  } else if (req == hal::uart::Uart::ServiceInfo::SendStatus) {
-    serviceStatusRequest(&uart_msg, max_len);
+  if (serviceStatusRequest(&uart_msg, max_len) == Status_t::Error) {
+    return -1;
   }
 
   /* Now we are ready to encode the message! */
@@ -101,28 +96,30 @@ int32_t UartService::serviceRequest(uint8_t* data, size_t max_len) {
   return stream.bytes_written;
 }
 
-void UartService::serviceDataRequest(uart_proto_UartMsg* msg, size_t max_len) {
-  msg->which_msg = uart_proto_UartMsg_data_tag;
+Status_t UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t max_len) {
+  Status_t status;
+  hal::uart::Uart::StatusInfo info;
 
-  size_t data_size = uart0_.serviceRx(msg->msg.data.data.bytes, max_len);
-  msg->msg.data.data.size = static_cast<uint16_t>(data_size);
+  if (uart0_.serviceStatus(&info, msg->msg.status.rx_data.bytes, max_len) == Status_t::Ok) {
+    msg->sequence_number = info.sequence_number;
+    msg->which_msg = uart_proto_UartMsg_status_tag;
 
-  DEBUG_INFO("Srv data (len: %d, seq: %d)", data_size, msg->sequence_number);
-}
+    msg->msg.status.rx_overflow = info.rx_overflow;
+    msg->msg.status.tx_overflow = info.tx_overflow;
+    msg->msg.status.tx_complete = info.tx_complete;
+    msg->msg.status.rx_space = info.rx_space;
+    msg->msg.status.tx_space = info.tx_space;
+    msg->msg.status.rx_data.size = info.rx_size;
 
-void UartService::serviceStatusRequest(uart_proto_UartMsg* msg, size_t /*max_size*/) {
-  hal::uart::Uart::StatusInfo status;
-  uart0_.serviceStatus(&status);
+    DEBUG_INFO("Srv status (seq: %d) [ok]", msg->sequence_number);
+    status = Status_t::Ok;
 
-  msg->which_msg = uart_proto_UartMsg_status_tag;
+  } else {
+    DEBUG_INFO("Srv status (seq: %d) [failed]", msg->sequence_number);
+    status = Status_t::Error;
+  }
 
-  msg->msg.status.rx_overflow = status.rx_overflow;
-  msg->msg.status.tx_overflow = status.tx_overflow;
-  msg->msg.status.tx_complete = status.tx_complete;
-  msg->msg.status.rx_space = status.rx_space;
-  msg->msg.status.tx_space = status.tx_space;
-
-  DEBUG_INFO("Srv status (seq: %d)", msg->sequence_number);
+  return status;
 }
 
 }  // namespace app::uart_srv

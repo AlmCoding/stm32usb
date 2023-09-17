@@ -29,8 +29,7 @@ class UartService {
   int32_t serviceRequest(uint8_t* data, size_t max_len);
 
  private:
-  void serviceDataRequest(uart_proto_UartMsg* msg, size_t max_len);
-  void serviceStatusRequest(uart_proto_UartMsg* msg, size_t max_len);
+  Status_t serviceStatusRequest(uart_proto_UartMsg* msg, size_t max_len);
 
   hal::uart::Uart uart0_{ &huart1 };
 

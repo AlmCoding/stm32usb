@@ -68,7 +68,6 @@ Status_t Uart::init() {
   rx_read_pos_ = 0;
   rx_overflow_ = false;
 
-  send_data_msg_ = false;
   send_status_msg_ = false;
   seqence_number_ = 0;
 
@@ -83,12 +82,11 @@ uint32_t Uart::poll() {
 #endif
 
   if (isRxBufferEmpty() == false) {
-    send_data_msg_ = true;
-    service_requests++;
+    send_status_msg_ = true;
   }
 
   if (send_status_msg_ == true) {
-    service_requests++;
+    service_requests = 1;
   }
 
   return service_requests;
@@ -294,21 +292,6 @@ void Uart::rxCompleteCb() {
   os::msg::send_msg(os::msg::MsgQueue::UartTaskQueue, &msg);
 }
 
-uint32_t Uart::getServiceInfo(ServiceInfo* req) {
-  *req = ServiceInfo::None;
-
-  if (send_data_msg_ == true) {
-    send_data_msg_ = false;
-    *req = ServiceInfo::SendRxData;
-
-  } else if (send_status_msg_ == true) {
-    send_status_msg_ = false;
-    *req = ServiceInfo::SendStatus;
-  }
-
-  return seqence_number_;
-}
-
 size_t Uart::serviceRx(uint8_t* data, size_t max_len) {
   int32_t rx_cnt;
   bool rx_circulation = false;
@@ -341,13 +324,18 @@ size_t Uart::serviceRx(uint8_t* data, size_t max_len) {
   return rx_cnt;
 }
 
-void Uart::serviceStatus(StatusInfo* status) {
-  status->tx_complete = tx_complete_;
-  status->tx_overflow = tx_overflow_;
-  status->tx_space = getFreeTxSpace(seqence_number_);
+Status_t Uart::serviceStatus(StatusInfo* status, uint8_t* data, size_t max_len) {
+  send_status_msg_ = false;
 
+  status->sequence_number = seqence_number_;
   status->rx_overflow = rx_overflow_;
+  status->tx_overflow = tx_overflow_;
+  status->tx_complete = tx_complete_;
   status->rx_space = 0;
+  status->tx_space = static_cast<uint16_t>(getFreeTxSpace(status->sequence_number));
+  status->rx_size = static_cast<uint16_t>(serviceRx(data, max_len));
+
+  return Status_t::Ok;
 }
 
 } /* namespace hal::uart */

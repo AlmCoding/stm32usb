@@ -112,11 +112,11 @@ int32_t I2cService::serviceRequest(uint8_t* data, size_t max_len) {
   return stream.bytes_written;
 }
 
-Status_t I2cService::serviceMasterStatusRequest(i2c_proto_I2cMsg* msg, size_t max_size) {
+Status_t I2cService::serviceMasterStatusRequest(i2c_proto_I2cMsg* msg, size_t max_len) {
   Status_t status;
   hal::i2c::I2cMaster::StatusInfo info;
 
-  if (i2cMaster0_.serviceStatus(&info, msg->msg.master_status.read_data.bytes, max_size) == Status_t::Ok) {
+  if (i2cMaster0_.serviceStatus(&info, msg->msg.master_status.read_data.bytes, max_len) == Status_t::Ok) {
     msg->sequence_number = info.sequence_number;
     msg->which_msg = i2c_proto_I2cMsg_master_status_tag;
 

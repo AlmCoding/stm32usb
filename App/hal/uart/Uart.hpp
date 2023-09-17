@@ -24,11 +24,13 @@ class Uart {
   enum class ServiceInfo { None = 0, SendRxData, SendStatus };
 
   typedef struct {
+    uint32_t sequence_number;
     bool rx_overflow;
     bool tx_overflow;
     bool tx_complete;
-    size_t rx_space;
-    size_t tx_space;
+    uint16_t rx_space;
+    uint16_t tx_space;
+    uint16_t rx_size;
   } StatusInfo;
 
   Uart(UART_HandleTypeDef* uart_handle);
@@ -39,10 +41,7 @@ class Uart {
   uint32_t poll();
 
   Status_t scheduleTx(const uint8_t* data, size_t len, uint32_t seq_num);
-
-  uint32_t getServiceInfo(ServiceInfo* req);
-  size_t serviceRx(uint8_t* data, size_t max_len);
-  void serviceStatus(StatusInfo* status);
+  Status_t serviceStatus(StatusInfo* status, uint8_t* data, size_t max_len);
 
  private:
   Status_t stopDma();
@@ -52,6 +51,7 @@ class Uart {
   Status_t startTx();
   void txCompleteCb();
   void rxCompleteCb();
+  size_t serviceRx(uint8_t* data, size_t max_len);
 
   UART_HandleTypeDef* uart_handle_;
   uint8_t rx_buffer_[RxBufferSize];
@@ -66,7 +66,6 @@ class Uart {
   size_t rx_read_pos_ = 0;
   bool rx_overflow_ = false;
 
-  bool send_data_msg_ = false;
   bool send_status_msg_ = false;
   uint32_t seqence_number_ = 0;
 
