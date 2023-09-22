@@ -11,13 +11,11 @@
 #include "common.hpp"
 #include "os/msg/msg_def.hpp"
 
-namespace os {
-namespace msg {
+namespace os::msg {
 
 bool send_msg(MsgQueue queue, BaseMsg* msg);
 bool receive_msg(MsgQueue queue, BaseMsg* msg, TickNum_t timeout);
 
-}  // namespace msg
-}  // namespace os
+}  // namespace os::msg
 
 #endif /* OS_MSG_MSG_BROKER_HPP_ */

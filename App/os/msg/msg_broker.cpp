@@ -9,8 +9,7 @@
 #include "cmsis_os.h"
 #include "os/queue.hpp"
 
-namespace os {
-namespace msg {
+namespace os::msg {
 
 bool send_msg(MsgQueue queue, BaseMsg* msg) {
   bool success = false;
@@ -34,5 +33,4 @@ bool receive_msg(MsgQueue queue, BaseMsg* msg, TickNum_t timeout) {
   return success;
 }
 
-}  // namespace msg
-}  // namespace os
+}  // namespace os::msg

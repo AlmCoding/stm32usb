@@ -1,5 +1,5 @@
 /*
- * task_builder.hpp
+ * builder.hpp
  *
  *  Created on: May 4, 2023
  *      Author: Alexander L.
@@ -12,6 +12,6 @@ namespace os {
 
 void buildOs();
 
-} // namespace os
+}  // namespace os
 
 #endif /* OS_BUILDER_HPP_ */
