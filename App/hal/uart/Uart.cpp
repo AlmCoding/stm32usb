@@ -8,13 +8,13 @@
 #include "hal/uart/Uart.hpp"
 #include "hal/uart/UartIrq.hpp"
 #include "os/msg/msg_broker.hpp"
-#include "srv/debug.hpp"
+#include "util/debug.hpp"
 
 #define DEBUG_ENABLE_UART
 #ifdef DEBUG_ENABLE_UART
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][Uart]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][Uart]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][Uart]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) util::dbg::print(util::dbg::TERM0, "[INF][Uart]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) util::dbg::print(util::dbg::TERM0, "[WRN][Uart]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) util::dbg::print(util::dbg::TERM0, "[ERR][Uart]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)

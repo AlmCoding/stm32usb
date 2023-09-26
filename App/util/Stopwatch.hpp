@@ -5,12 +5,12 @@
  *      Author: Alexander L.
  */
 
-#ifndef SRV_STOPWATCH_HPP_
-#define SRV_STOPWATCH_HPP_
+#ifndef UTIL_STOPWATCH_HPP_
+#define UTIL_STOPWATCH_HPP_
 
 #include "common.hpp"
 
-namespace srv {
+namespace util {
 
 class Stopwatch {
  public:
@@ -27,6 +27,6 @@ class Stopwatch {
   MicroSeconds time_;
 };
 
-} /* namespace srv */
+}  // namespace util
 
-#endif /* SRV_STOPWATCH_HPP_ */
+#endif /* UTIL_STOPWATCH_HPP_ */

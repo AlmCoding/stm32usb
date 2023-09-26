@@ -5,12 +5,12 @@
  *      Author: Alexander L.
  */
 
-#ifndef SRV_TIMEOUT_HPP_
-#define SRV_TIMEOUT_HPP_
+#ifndef UTIL_TIMEOUT_HPP_
+#define UTIL_TIMEOUT_HPP_
 
 #include "common.hpp"
 
-namespace srv {
+namespace util {
 
 class Timeout {
  public:
@@ -27,6 +27,6 @@ class Timeout {
   MicroSeconds start_;
 };
 
-} /* namespace srv */
+}  // namespace util
 
-#endif /* SRV_TIMEOUT_HPP_ */
+#endif /* UTIL_TIMEOUT_HPP_ */

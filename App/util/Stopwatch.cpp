@@ -5,10 +5,10 @@
  *      Author: Alexander L.
  */
 
-#include "srv/Stopwatch.hpp"
+#include "util/Stopwatch.hpp"
 #include "tim.h"
 
-namespace srv {
+namespace util {
 
 Stopwatch::Stopwatch() {}
 
@@ -32,4 +32,4 @@ MicroSeconds Stopwatch::stop() {
   return time_;
 }
 
-} /* namespace srv */
+}  // namespace util

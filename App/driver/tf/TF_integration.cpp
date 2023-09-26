@@ -1,15 +1,16 @@
+
 extern "C" {
 
-#include "srv/Timeout.hpp"
-#include "srv/debug.hpp"
 #include "tf/TinyFrame.h"
 #include "usbd_cdc_if.h"
+#include "util/Timeout.hpp"
+#include "util/debug.hpp"
 
 #define DEBUG_ENABLE_MAIN
 #ifdef DEBUG_ENABLE_MAIN
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][TF_int]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][TF_int]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][TF_int]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) util::dbg::print(util::dbg::TERM0, "[INF][TF_int]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) util::dbg::print(util::dbg::TERM0, "[WRN][TF_int]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) util::dbg::print(util::dbg::TERM0, "[ERR][TF_int]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)
@@ -27,7 +28,7 @@ extern "C" {
  */
 
 void TF_WriteImpl(TinyFrame* /*tf*/, const uint8_t* buff, uint32_t len) {
-  srv::Timeout timeout{};
+  util::Timeout timeout{};
   bool notified = false;
 
   while (CDC_IsTransmit_Busy() == 1) {

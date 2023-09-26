@@ -5,14 +5,14 @@
  *      Author: Alexander L.
  */
 
-#ifndef SRV_DEBUG_HPP_
-#define SRV_DEBUG_HPP_
+#ifndef UTIL_DEBUG_HPP_
+#define UTIL_DEBUG_HPP_
 
 #ifdef __cplusplus
 
 #include "common.hpp"
 
-namespace srv::dbg {
+namespace util::dbg {
 
 constexpr uint8_t TERM0 = 0;
 
@@ -27,7 +27,7 @@ void print(uint8_t term, const char* format, ...);
 
 #ifdef __cplusplus
 }  // extern "C"
-}  // namespace srv::debug
+}  // namespace util::debug
 #endif
 
-#endif /* SRV_DEBUG_HPP_ */
+#endif /* UTIL_DEBUG_HPP_ */

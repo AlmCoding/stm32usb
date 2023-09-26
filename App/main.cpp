@@ -7,14 +7,14 @@
 
 #include "main.h"
 #include "os/builder.hpp"
-#include "srv/debug.hpp"
 #include "usb_device.h"
+#include "util/debug.hpp"
 
 #define DEBUG_ENABLE_MAIN
 #ifdef DEBUG_ENABLE_MAIN
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][main]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][main]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][main]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) util::dbg::print(util::dbg::TERM0, "[INF][main]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) util::dbg::print(util::dbg::TERM0, "[WRN][main]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) util::dbg::print(util::dbg::TERM0, "[ERR][main]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)
@@ -27,7 +27,7 @@
  */
 int main(void) {
   // Init debug output
-  srv::dbg::initDebug();
+  util::dbg::initDebug();
 
   // Init HW (CubeMX generated)
   initPeripherals();

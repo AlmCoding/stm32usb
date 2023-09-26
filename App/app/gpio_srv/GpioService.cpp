@@ -8,18 +8,17 @@
 #include "app/gpio_srv/GpioService.hpp"
 #include "hal/gpio/GpioIrq.hpp"
 #include "os/msg/msg_broker.hpp"
-#include "srv/debug.hpp"
-
 #include "pb_common.h"
 #include "pb_decode.h"
 #include "pb_encode.h"
 #include "proto_c/gpio.pb.h"
+#include "util/debug.hpp"
 
 #define DEBUG_ENABLE_GPIO_SERVICE
 #ifdef DEBUG_ENABLE_GPIO_SERVICE
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][GpioSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][GpioSrv]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][GpioSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) util::dbg::print(util::dbg::TERM0, "[INF][GpioSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) util::dbg::print(util::dbg::TERM0, "[WRN][GpioSrv]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) util::dbg::print(util::dbg::TERM0, "[ERR][GpioSrv]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)

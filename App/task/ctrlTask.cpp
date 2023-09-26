@@ -6,21 +6,21 @@
  */
 
 #include "task/ctrlTask.hpp"
+#include "util/Stopwatch.hpp"
+#include "util/debug.hpp"
 
 #include "cmsis_os.h"
 #include "driver/tf/FrameDriver.hpp"
 #include "os/msg/msg_broker.hpp"
 #include "os/task.hpp"
-#include "srv/Stopwatch.hpp"
-#include "srv/debug.hpp"
 #include "task/uartTask.hpp"
 #include "usbd_cdc_if.h"
 
 #define DEBUG_ENABLE_CTRL_TASK
 #ifdef DEBUG_ENABLE_CTRL_TASK
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][ctrlTsk]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][ctrlTsk]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][ctrlTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) util::dbg::print(util::dbg::TERM0, "[INF][ctrlTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) util::dbg::print(util::dbg::TERM0, "[WRN][ctrlTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) util::dbg::print(util::dbg::TERM0, "[ERR][ctrlTsk]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)
@@ -45,7 +45,7 @@ void ctrlTask(void* /*argument*/) {
 }
 
 void processMsg(os::msg::BaseMsg* msg) {
-  srv::Stopwatch stopwatch{};
+  util::Stopwatch stopwatch{};
   DEBUG_INFO("Notification received: %d", ++msg_count_)
 
   switch (msg->id) {

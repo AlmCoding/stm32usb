@@ -5,11 +5,11 @@
  *      Author: Alexander L.
  */
 
-#include "srv/debug.hpp"
+#include "util/debug.hpp"
 #include <cstdarg>
 #include "rtt/RTT/SEGGER_RTT.h"
 
-namespace srv::dbg {
+namespace util::dbg {
 
 void initDebug() {
   SEGGER_RTT_Init();
@@ -22,4 +22,4 @@ void print(uint8_t term, const char* format, ...) {
   va_end(args);
 }
 
-}  // namespace srv::debug
+}  // namespace util::dbg

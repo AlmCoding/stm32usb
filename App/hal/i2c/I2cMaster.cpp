@@ -6,17 +6,17 @@
  */
 
 #include "hal/i2c/I2cMaster.hpp"
+#include <util/debug.hpp>
 #include "etl/algorithm.h"      // etl::max
 #include "etl/error_handler.h"  // etl::ETL_ASSERT()
 #include "hal/i2c/I2cIrq.hpp"
 #include "os/msg/msg_broker.hpp"
-#include "srv/debug.hpp"
 
 #define DEBUG_ENABLE_I2C_MASTER
 #ifdef DEBUG_ENABLE_I2C_MASTER
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][I2cMstr]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][I2cMstr]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][I2cMstr]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) util::dbg::print(util::dbg::TERM0, "[INF][I2cMstr]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) util::dbg::print(util::dbg::TERM0, "[WRN][I2cMstr]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) util::dbg::print(util::dbg::TERM0, "[ERR][I2cMstr]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)

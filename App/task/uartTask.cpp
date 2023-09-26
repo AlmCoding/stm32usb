@@ -6,20 +6,19 @@
  */
 
 #include "task/uartTask.hpp"
-
 #include "app/uart_srv/UartService.hpp"
 #include "cmsis_os.h"
 #include "driver/tf/FrameDriver.hpp"
 #include "os/msg/msg_broker.hpp"
 #include "os/mutex.hpp"
 #include "os/task.hpp"
-#include "srv/debug.hpp"
+#include "util/debug.hpp"
 
 #define DEBUG_ENABLE_UART_TASK
 #ifdef DEBUG_ENABLE_UART_TASK
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][uartTsk]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][uartTsk]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][uartTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) util::dbg::print(util::dbg::TERM0, "[INF][uartTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) util::dbg::print(util::dbg::TERM0, "[WRN][uartTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) util::dbg::print(util::dbg::TERM0, "[ERR][uartTsk]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)

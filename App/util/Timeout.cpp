@@ -5,10 +5,10 @@
  *      Author: Alexander L.
  */
 
-#include "srv/Timeout.hpp"
+#include "util/Timeout.hpp"
 #include "tim.h"
 
-namespace srv {
+namespace util {
 
 Timeout::Timeout() {}
 
@@ -35,4 +35,4 @@ MicroSeconds Timeout::remaining() {
   return timeout_ - ((htim2.Instance->CNT - start_) * TimeBase);
 }
 
-} /* namespace srv */
+}  // namespace util

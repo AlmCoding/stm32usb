@@ -6,6 +6,7 @@
  */
 
 #include "task/i2cTask.hpp"
+#include "util/debug.hpp"
 
 #include "app/i2c_srv/I2cService.hpp"
 #include "cmsis_os.h"
@@ -13,13 +14,12 @@
 #include "os/msg/msg_broker.hpp"
 #include "os/mutex.hpp"
 #include "os/task.hpp"
-#include "srv/debug.hpp"
 
 #define DEBUG_ENABLE_I2C_TASK
 #ifdef DEBUG_ENABLE_I2C_TASK
-#define DEBUG_INFO(f, ...) srv::dbg::print(srv::dbg::TERM0, "[INF][i2cTsk]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_WARN(f, ...) srv::dbg::print(srv::dbg::TERM0, "[WRN][i2cTsk]: " f "\n", ##__VA_ARGS__);
-#define DEBUG_ERROR(f, ...) srv::dbg::print(srv::dbg::TERM0, "[ERR][i2cTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_INFO(f, ...) util::dbg::print(util::dbg::TERM0, "[INF][i2cTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_WARN(f, ...) util::dbg::print(util::dbg::TERM0, "[WRN][i2cTsk]: " f "\n", ##__VA_ARGS__);
+#define DEBUG_ERROR(f, ...) util::dbg::print(util::dbg::TERM0, "[ERR][i2cTsk]: " f "\n", ##__VA_ARGS__);
 #else
 #define DEBUG_INFO(...)
 #define DEBUG_WARN(...)
