@@ -14,7 +14,7 @@
 namespace os::msg {
 
 bool send_msg(MsgQueue queue, BaseMsg* msg);
-bool receive_msg(MsgQueue queue, BaseMsg* msg, TickNum_t timeout);
+bool receive_msg(MsgQueue queue, BaseMsg* msg, TickNum timeout);
 
 }  // namespace os::msg
 
